@@ -544,9 +544,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__vWECtuSTGBxwEsb6rvHNoG7Yg02FlS03fyZKtx5CxdY');
-/tmp/interpreter.N9AgYMPRhf5orDsGJCqaZZTSFwE6vdyE+A1bbx2Kitc/document.pdf
-__vWECtuSTGBxwEsb6rvHNoG7Yg02FlS03fyZKtx5CxdY
+meta::data('pdf-output-file', <<'__B6X5Sp/krGbWV69d0tQoPRAR68ebdlQFi9Y4I6Vdrq0');
+/tmp/interpreter.d7YJUYJi-wiMZEmJZU-o9IypOXbZNLe7i3W-a144wZM/document.pdf
+__B6X5Sp/krGbWV69d0tQoPRAR68ebdlQFi9Y4I6Vdrq0
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -713,6 +713,13 @@ if (@attributes) {
 }
 __I4eRG7HtLDZhFgrlr0QDrQO5MRwJYGFlotQsWQIE/d8
 
+meta::function('files', <<'__m7EeTwfWa+KNekunGpnyF77ZE5n0qlaCzK70nPgXk4o');
+# Quickly generate files
+terminal::message('status', 'Generating files from main document...');
+&{'compile-to-tex'}();
+terminal::message('status', 'Done.');
+__m7EeTwfWa+KNekunGpnyF77ZE5n0qlaCzK70nPgXk4o
+
 meta::function('grab', <<'__sXs1aeJVBERH6nWE7ZpWiIO5Cg7fSBWcoscDg1DHzD8');
 my ($filename, @attribute_names) = @_;
 associate("implementation::$_", `$filename cat $_`) for @attribute_names;
@@ -807,6 +814,15 @@ __ik0ofu7R8gHAKSmMjek79V+yfgdjdK5Jmtwf7h8SpJk
 meta::function('reload', <<'__GwQjnnfuj0xQlervDJ9EVWzdmdz+XL3Gq0i9rdejvzM');
 execute($_) for (grep {! (/^internal::/ || /^bootstrap::/)} keys %data);
 __GwQjnnfuj0xQlervDJ9EVWzdmdz+XL3Gq0i9rdejvzM
+
+meta::function('render', <<'__3oK0CSm8flucLHFYkqn7EbxALXkyMvhecwh2/P/KWhA');
+use File::Copy 'cp';
+
+terminal::message('status', 'Building PDF...');
+compile();
+terminal::message('status', 'Copying PDF to source directory');
+cp(&{'pdf-output-file'}(), &{'source-directory'} . '/' . name() . '.pdf');
+__3oK0CSm8flucLHFYkqn7EbxALXkyMvhecwh2/P/KWhA
 
 meta::function('rm', <<'__7BVECTVo/mcT5+edC70WPc6S1xCbzAeyUCfCjkKWlww');
 for my $to_be_deleted (@_) {
