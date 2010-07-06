@@ -1,4 +1,5 @@
-WORKING = first-order-functions higher-order-functions indirect-functions
+WORKING = first-order-functions higher-order-functions \
+          indirect-functions apply-two-function
 ERRORS  = indirect-functions-broken
 
 CC      = g++
@@ -12,6 +13,7 @@ run: all
 	./first-order-functions
 	./higher-order-functions
 	./indirect-functions
+	./apply-two-function
 
 .PHONY: clean
 clean:

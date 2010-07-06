@@ -359,8 +359,9 @@ meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXb
   :.
 __dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI
 
-meta::cpp_section('introduction', <<'__pq9lDMRHgPLqzYy19R/Y39xylS+JgQB5HElw/zL/6Zc');
+meta::cpp_section('introduction', <<'__DRP0kMUVbF2TtLI6WGx4GYs5OKUVwC8ZuI2PIzXndPY');
 - Introduction to Template Patterns
+  \label{sec:introduction}
   Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
   declaration, time.\footnote{This makes it untyped. C++ templates also support function types using nested template syntax -- see \Ref{section}{sec:higher-order-function-types}.} This section
   goes over the encoding of lambda calculus in the template system.
@@ -527,13 +528,67 @@ meta::cpp_section('introduction', <<'__pq9lDMRHgPLqzYy19R/Y39xylS+JgQB5HElw/zL/6
     the arity of the uncurried form of the function. For example, the Church arity of $\lambda x. \lambda y. x$ is 2, since uncurrying yields $\lambda(x,y).x$.} or takes at least so many
     arguments. It also provides some notational convenience at invocation-time.
 
+    Here is the Haskell function that we will model in C++ templates:
+
+    :: resource name=examples/apply-two-function.hs
+    apply_two :: ((a, a) -> b) -> a -> b
+    apply_two f x = f (x, x)
+    :.
+
+    In template metaprogramming it isn't possible to express the constraints about values, but we can express constraints about arity and function status:
+
+    :: cpp name=examples/apply-two-function.cc
+    #include <iostream>
+    #include "constants.h"
+
+    // Encoding the type signature as a template parameter specification
+    struct apply_two {
+      template<template<class arg1, class arg2> class f>
+      struct apply {
+        struct type {
+          template<class x>
+          struct apply {
+            typedef f<x, x> type;
+          };
+        };
+      };
+    };
+
+    // An example value for f
+    template<class x, class y>
+    struct sample_f {
+      typedef x x_type;
+      typedef y y_type;
+    };
+
+    typedef has_a_number<10> t1;
+    typedef has_a_number<12> t2;
+    typedef apply_two::apply<sample_f>::type::apply<t1>::type two_of_t1;
+
+    int main () {
+      std::cout << "t1::number                = " << t1::number << std::endl <<
+                   "two_of_t1::x_type::number = " << two_of_t1::x_type::number << std::endl <<
+                   "two_of_t1::y_type::number = " << two_of_t1::y_type::number << std::endl;
+    }
+    :.
+
+    The parameter definition \verb|template<class arg1, class arg2> class f| is equivalent to the Haskell type signature \verb|(a, b) -> c|; none of the individual types are specified, but the
+    template must be invoked on two parameters or not invoked at all. The other thing of note is that you can arbitrarily refine the left-hand side; for example:
     
+    ::
+    template<template<template<class x> f, template<class y> class g> class compose>
+    struct ...
+    :.
+
+    This is equivalent to \verb|((a -> b), (c -> d)) -> e|. As far as I know there is no way to specify the return type of a function using template syntax.
 
   - Makefile for examples
-    This makefile will build all of the examples listed in the introduction.
+    This makefile will build all of the examples listed in \Ref{section}{sec:introduction}. It is available in the source distribution as \verb|src/makefile|, and should be run from inside
+    \verb|src|.
 
     :: resource name=examples/makefile
-    WORKING = first-order-functions higher-order-functions indirect-functions
+    WORKING = first-order-functions higher-order-functions \
+              indirect-functions apply-two-function
     ERRORS  = indirect-functions-broken
 
     CC      = g++
@@ -547,6 +602,7 @@ meta::cpp_section('introduction', <<'__pq9lDMRHgPLqzYy19R/Y39xylS+JgQB5HElw/zL/6
     	./first-order-functions
     	./higher-order-functions
     	./indirect-functions
+    	./apply-two-function
 
     .PHONY: clean
     clean:
@@ -555,7 +611,7 @@ meta::cpp_section('introduction', <<'__pq9lDMRHgPLqzYy19R/Y39xylS+JgQB5HElw/zL/6
     %: %.cc
     	$(CC) $(CC_OPTS) $< -o $@
     :.
-__pq9lDMRHgPLqzYy19R/Y39xylS+JgQB5HElw/zL/6Zc
+__DRP0kMUVbF2TtLI6WGx4GYs5OKUVwC8ZuI2PIzXndPY
 
 meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
@@ -615,9 +671,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__GEIfmIbKMKlCeXo7mChKrzEEFWzeyTXhXWdnonjYhgU');
-/tmp/interpreter.DlLpCflfXE2LYcOn+GReKrrIW+IjpphH1n8o7wmx6H4/document.pdf
-__GEIfmIbKMKlCeXo7mChKrzEEFWzeyTXhXWdnonjYhgU
+meta::data('pdf-output-file', <<'__wyoieRij0nSd8jStK9BgmC/te0J6/FOh14xjEsi3vXo');
+/tmp/interpreter.L6MoEXhZJX-jRCbx+Ow6QsTZCFozJTyLSWkAMh34heU/document.pdf
+__wyoieRij0nSd8jStK9BgmC/te0J6/FOh14xjEsi3vXo
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
