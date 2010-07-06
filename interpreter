@@ -359,7 +359,7 @@ meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXb
   :.
 __dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI
 
-meta::cpp_section('introduction', <<'__C6qICNa+XfB/vOyRWHBuc9smKa6vQtVjGhYHe1v+q1c');
+meta::cpp_section('introduction', <<'__NqxAyuFV++BUUzJsnlGfLROweny7gqI6qH64/eiEBBE');
 - Introduction to Template Patterns
   \label{sec:introduction}
   Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
@@ -430,11 +430,11 @@ meta::cpp_section('introduction', <<'__C6qICNa+XfB/vOyRWHBuc9smKa6vQtVjGhYHe1v+q
     var y = identity(x).type;
     :.
 
-    Having issues like this percolating through the design can be a real problem. Unless the slot is passed to every invocation site,\footnote{It also must be forwarded, which isn't possible in
-    C++ to the best of my knowledge} invocations will be divergent and will create errors. This means that return values should be unified to a single slot, in this library (and the Boost MPL)
-    called \verb|::type|.\footnote{This may seem counter-intuitive, since the types here encode values in lambda-calculus. However, it does serve a mnemonic purpose later when value types are
-    used as template parameters, and dependent value-type relations are established. Once this happens it becomes useful to explicitly distinguish between type template parameters and value
-    template parameters.}
+    Having issues like this percolating through the design can be a real problem. Unless the slot is passed to every invocation site,\footnote{It also must be forwarded, which isn't possible
+    in C++ to the best of my knowledge.} invocations will be divergent and will create errors. This means that return values should be unified to a single slot, in this library (and the Boost
+    MPL) called \verb|::type|.\footnote{This may seem counter-intuitive, since the types here encode values in lambda-calculus. However, it does serve a mnemonic purpose later when value types
+    are used as template parameters, and dependent value-type relations are established. Once this happens it becomes useful to explicitly distinguish between type template parameters and
+    value template parameters.}
 
     So we establish some conventions up front. Whenever you define a constant, it is used as-is without a contained \verb|typedef| that we have to know about. This is OK because we shouldn't
     ever make assumptions about the members of types that are used as template parameters.
@@ -617,6 +617,7 @@ meta::cpp_section('introduction', <<'__C6qICNa+XfB/vOyRWHBuc9smKa6vQtVjGhYHe1v+q
     :.
 
     - Limitations of inner specialization
+      \label{sec:limitations-of-inner-specialization}
       Because terminal (i.e.~non-expanding) types are extensionally equivalent, pattern matching can be used to reliably specialize template expansions. The only case where this doesn't work
       is inside a class:
 
@@ -702,19 +703,19 @@ meta::cpp_section('introduction', <<'__C6qICNa+XfB/vOyRWHBuc9smKa6vQtVjGhYHe1v+q
     %: %.cc
     	$(CC) $(CC_OPTS) $< -o $@ || true
     :.
-__C6qICNa+XfB/vOyRWHBuc9smKa6vQtVjGhYHe1v+q1c
+__NqxAyuFV++BUUzJsnlGfLROweny7gqI6qH64/eiEBBE
 
-meta::cpp_section('preprocessor', <<'__6iDJffs0P61xJlP3vcivix5EQiRrGFJdzoipyjljL8g');
+meta::cpp_section('preprocessor', <<'__FaB+/TARtys8W8CDaaQ2SMmfXNEgKTVb3hXC1rxkGG4');
 - Preprocessor Definitions
   The goal of this section is to define a small domain-specific language for building functions and defining variables. The basic operations are these:
 
   e[
     + Defining a global constant
+    + Defining a local variable
+    + Applying a function to an expression \label{itm:apply-function-to-expression}
+    + Returning a value from a function
     + Defining a function
     + Defining a closure
-    + Defining a local variable
-    + Returning a value from a function
-    + Applying a function to an expression \label{itm:apply-function-to-expression}
   ]e
 
   Each of these operations has a roughly standard form.\footnote{There are two for \Ref{item}{itm:apply-function-to-expression}; one form is used outside of a function body and the other is
@@ -762,6 +763,36 @@ meta::cpp_section('preprocessor', <<'__6iDJffs0P61xJlP3vcivix5EQiRrGFJdzoipyjljL
     Note that the order of arguments is reversed from a \verb|typedef|. This is both necessary and convenient; it is convenient because you generally define variables by specifying the name
     first, and necessary because the variadic parameter should come last.
 
+  - Defining a local variable
+    Inside a \verb|struct| the visibility of \verb|typedef|s can be changed by using \verb|public:|, \verb|private:|, etc. Because local variables have no external visibility, they are defined
+    with the \verb|private:| modifier.
+
+    :: cpp name=preprocessor/local.h
+    #define local(name, value...) private: typedef typename value name;
+    :.
+
+  - Applying a function to an expression
+    The syntax for this varies depending on whether you are inside or outside a template. If you are inside a template, some disambiguation needs to happen regarding template expansion and
+    namespace lookups. For example, this global \verb|typedef|:
+
+    ::
+    typedef foo<x, y>::bar<y>::type bif;
+    :.
+
+    \noindent would be translated into this local \verb|typedef|:
+
+    ::
+    typedef typename foo<x, y>::template bar<y>::type bif;
+    :.
+
+    As such, there are two different versions of this macro. One, \verb|global_apply|, should be used at the top level, while the other, \verb|apply|, should be used inside classes. The
+    insertion of \verb|typename| is handled by local variable definition and the return construct.
+
+    :: cpp name=preprocessor/apply.h
+    #define global_apply(lhs, args...) lhs::apply<args>::type
+    #define apply(lhs, args...) lhs::template apply<args>::type
+    :.
+
   - Defining a function
     Encoded functions generally look like this:
 
@@ -773,8 +804,46 @@ meta::cpp_section('preprocessor', <<'__6iDJffs0P61xJlP3vcivix5EQiRrGFJdzoipyjljL
     };
     :.
 
-    There is a challenge here, however. 
-__6iDJffs0P61xJlP3vcivix5EQiRrGFJdzoipyjljL8g
+    There is a challenge here, however. As mentioned in \Ref{section}{sec:limitations-of-inner-specialization}, closures can't be encoded in a purely nested way. Rather, inner functions must
+    be explicitly uncurried and declared beforehand. So the full form of expansion looks like this:
+
+    ::
+    namespace _internals {
+      // dependent closures go here
+    }
+
+    struct function_name {
+      template<parameters>
+      struct apply {
+        ...
+        typedef ... type;
+      };
+    };
+    :.
+
+    The way I'm going to deal with this for now is to require closures to both be named, and to specify the variables they close over. In other words, the uncurrying is done manually and not
+    by the macro layer.\footnote{It may be possible to define a smarter set of macros to do this properly, so this section may change in the future.}
+
+    :: cpp name=preprocessor/function.h
+    // Protect from argument separation in the preprocessor.
+    #define v(xs...) xs
+
+    // Define a named expanding slot.
+    #define slot(name, parameters) \
+      template<parameters> struct name
+
+    // Define a function that can have specialized closures.
+    #define function(name, cases...) \
+      namespace name##_internals { cases } \
+      struct name { typedef name##_internals::apply apply; }
+
+    // Define either a general or specialized case.
+    #define when(parameters) slot(apply, parameters)
+    :.
+
+  - Defining a closure
+    Using the definitions above, closure definitions
+__FaB+/TARtys8W8CDaaQ2SMmfXNEgKTVb3hXC1rxkGG4
 
 meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
@@ -836,9 +905,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__fih+GzzkavnLh64eJ1WrgXHAl5HZhK6NxsyEBUsMAaw');
-/tmp/interpreter.mu8tvGI6m8A1ztYUNcquDGhRhRJiHYvvx2H9CkF4pH0/document.pdf
-__fih+GzzkavnLh64eJ1WrgXHAl5HZhK6NxsyEBUsMAaw
+meta::data('pdf-output-file', <<'__snLhBxXxkLLCNiq561C6qTVUR9pZv+EzDdYSqcBbJ9U');
+/tmp/interpreter.c+ksInpkfPyKXfX+HiaG8Mlf4c9S2ZG-0QDLoNZqUOc/document.pdf
+__snLhBxXxkLLCNiq561C6qTVUR9pZv+EzDdYSqcBbJ9U
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
