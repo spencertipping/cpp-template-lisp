@@ -1,3 +1,5 @@
+#include <iostream>
+#include "constants.h"
 // Encoding the K combinator uniformly
 struct k {
   template<class t>
