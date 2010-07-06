@@ -789,25 +789,27 @@ begin
 %section(cpp_section::preprocessor)
 __baPpCyrzWlXFIa5QkjvWtqTQPxtJuRsoIXfqyXZg6ls
 
-meta::data('header', <<'__9t0Dc6kncjMJSRq7d4I6GqZei2O7Z0ncCxs4LA8IKis');
+meta::data('header', <<'__HlC/zSnFNAXNbuJ/z8ZYgHsD5DWMisPBSt/xyoy+0cw');
 \documentclass{article}
 
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath,amssymb,pxfonts,listings,color}
 \usepackage[colorlinks]{hyperref}
 
+\definecolor{gray}{rgb}{0.6,0.6,0.6}
+
 \usepackage{caption}
-\DeclareCaptionFormat{listing}{\llap{\color[rgb]{0.6,0.6,0.6}#1#2\hspace{2pt}}\tt{}#3}
+\DeclareCaptionFormat{listing}{\llap{\color{gray}#1\hspace{10pt}}\tt{}#3}
 \captionsetup[lstlisting]{format=listing, singlelinecheck=false, margin=0pt, font={bf}}
 
 \newcommand{\Ref}[2]{\hyperref[#2]{#1 \ref*{#2}}}
 
-\lstset{columns=fixed,basicstyle={\tt},numbers=left,basewidth=0.5em,showstringspaces=false,numberstyle={\scriptsize}}
+\lstset{columns=fixed,basicstyle={\tt},numbers=left,basewidth=0.5em,showstringspaces=false,numberstyle={\color{gray}\scriptsize}}
 
 \lstnewenvironment{javacode}{\lstset{language=java}}{}
 \lstnewenvironment{cppcode} {\lstset{language=c++}} {}
 \lstnewenvironment{resource}{}{}
-__9t0Dc6kncjMJSRq7d4I6GqZei2O7Z0ncCxs4LA8IKis
+__HlC/zSnFNAXNbuJ/z8ZYgHsD5DWMisPBSt/xyoy+0cw
 
 meta::data('meta-associations', <<'__DVlfIHkYXJ4+o/MvyDFYl59WCQmDx7HU8XchAsqz9/w');
 ^function:: .pl
@@ -834,9 +836,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__EMpQXnlIqX2Z47AG9fgCtZCvJu1m/e3JzgKfOnjpXAQ');
-/tmp/interpreter.bUk0VdZlNObFtAZ08-Ieg66wc4LSTnyjAMV8UPNFn4o/document.pdf
-__EMpQXnlIqX2Z47AG9fgCtZCvJu1m/e3JzgKfOnjpXAQ
+meta::data('pdf-output-file', <<'__fih+GzzkavnLh64eJ1WrgXHAl5HZhK6NxsyEBUsMAaw');
+/tmp/interpreter.mu8tvGI6m8A1ztYUNcquDGhRhRJiHYvvx2H9CkF4pH0/document.pdf
+__fih+GzzkavnLh64eJ1WrgXHAl5HZhK6NxsyEBUsMAaw
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
