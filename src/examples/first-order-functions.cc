@@ -13,7 +13,10 @@ template<class t> struct bar {
 typedef bar<also_foo>::type identity_result;
 
 int main () {
-  std::cout << "foo::value             = " << foo::value             << std::endl <<
-               "also_foo::value        = " << also_foo::value        << std::endl <<
-               "identity_result::value = " << identity_result::value << std::endl;
+  std::cout << "foo::value             = " <<
+                foo::value                 << std::endl <<
+               "also_foo::value        = " <<
+                also_foo::value            << std::endl <<
+               "identity_result::value = " <<
+                identity_result::value     << std::endl;
 }

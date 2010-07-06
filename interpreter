@@ -359,7 +359,7 @@ meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXb
   :.
 __dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI
 
-meta::cpp_section('introduction', <<'__WCz2C8YupFE7yta1btMsH3VcZkw49UUNWBET1gMm2jE');
+meta::cpp_section('introduction', <<'__yqjHpnID2POWO5nX7TB7uDUqTSqZYHk0xBmhFhCi+9Q');
 - Introduction to Template Patterns
   Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
   declaration, time.\footnote{This makes it untyped. C++ templates also support function types using nested template syntax -- see \Ref{section}{sec:function-types}.} This section goes over
@@ -407,9 +407,12 @@ meta::cpp_section('introduction', <<'__WCz2C8YupFE7yta1btMsH3VcZkw49UUNWBET1gMm2
     typedef bar<also_foo>::type identity_result;
 
     int main () {
-      std::cout << "foo::value             = " << foo::value             << std::endl <<
-                   "also_foo::value        = " << also_foo::value        << std::endl <<
-                   "identity_result::value = " << identity_result::value << std::endl;
+      std::cout << "foo::value             = " <<
+                    foo::value                 << std::endl <<
+                   "also_foo::value        = " <<
+                    also_foo::value            << std::endl <<
+                   "identity_result::value = " <<
+                    identity_result::value     << std::endl;
     }
     :.
 
@@ -481,7 +484,7 @@ meta::cpp_section('introduction', <<'__WCz2C8YupFE7yta1btMsH3VcZkw49UUNWBET1gMm2
     %: %.cc
     	g++ -g -Wall $< -o $@
     :.
-__WCz2C8YupFE7yta1btMsH3VcZkw49UUNWBET1gMm2jE
+__yqjHpnID2POWO5nX7TB7uDUqTSqZYHk0xBmhFhCi+9Q
 
 meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
@@ -496,7 +499,7 @@ begin
 %section(cpp_section::lists)
 __OPVkAwgTq0fP89VM9AJc9ZQGEf/ajSNVY7YqmNsYViw
 
-meta::data('header', <<'__XdOv45sIvn+EFSvy5PzBquPctSr3tCbdAAEUIAjfHIY');
+meta::data('header', <<'__1h1K8bRuphwoT4/m0Xd+QnMTVIXOEbZbjYvoNFqK8vg');
 \documentclass{article}
 
 \usepackage[utf8]{inputenc}
@@ -504,20 +507,17 @@ meta::data('header', <<'__XdOv45sIvn+EFSvy5PzBquPctSr3tCbdAAEUIAjfHIY');
 \usepackage[colorlinks]{hyperref}
 
 \usepackage{caption}
-\DeclareCaptionFont{white}{\color{white}}
-\DeclareCaptionFormat{listing}{\colorbox[rgb]{0.2,0.2,0.2}{\parbox{\textwidth}{\hspace{2pt}#1#2\tt{}#3}}}
-\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
-
-\definecolor{gray95}{rgb}{0.95,0.95,0.95}
+\DeclareCaptionFormat{listing}{\llap{#1#2\hspace{2pt}}\tt{}#3}
+\captionsetup[lstlisting]{format=listing, singlelinecheck=false, margin=0pt, font={bf}}
 
 \newcommand{\Ref}[2]{\hyperref[#2]{#1 \ref*{#2}}}
 
-\lstset{columns=fixed,basicstyle={\scriptsize\tt},basewidth=0.5em,xleftmargin=5pt,showstringspaces=false}
+\lstset{columns=fixed,basicstyle={\tt},numbers=left,basewidth=0.5em,showstringspaces=false,numberstyle={\scriptsize}}
 
 \lstnewenvironment{javacode}{\lstset{language=java}}{}
 \lstnewenvironment{cppcode} {\lstset{language=c++}} {}
 \lstnewenvironment{resource}{}{}
-__XdOv45sIvn+EFSvy5PzBquPctSr3tCbdAAEUIAjfHIY
+__1h1K8bRuphwoT4/m0Xd+QnMTVIXOEbZbjYvoNFqK8vg
 
 meta::data('meta-associations', <<'__DVlfIHkYXJ4+o/MvyDFYl59WCQmDx7HU8XchAsqz9/w');
 ^function:: .pl
@@ -544,9 +544,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__B6X5Sp/krGbWV69d0tQoPRAR68ebdlQFi9Y4I6Vdrq0');
-/tmp/interpreter.d7YJUYJi-wiMZEmJZU-o9IypOXbZNLe7i3W-a144wZM/document.pdf
-__B6X5Sp/krGbWV69d0tQoPRAR68ebdlQFi9Y4I6Vdrq0
+meta::data('pdf-output-file', <<'__b1O6EdZpFSLGRqmZFHICemV3NCswnyoc/2fIE0oKcOE');
+/tmp/interpreter.5fFRnKdyccbmC0b2jZ-slaAYB3+LN1fo9OvO2lRxshg/document.pdf
+__b1O6EdZpFSLGRqmZFHICemV3NCswnyoc/2fIE0oKcOE
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -606,7 +606,7 @@ for (@_) {
 }
 __qP6xPZE75s9g0XJIiC6FGw0vnj2j0glUzsAHxyA3lvY
 
-meta::function('compile', <<'__HfmDCotLaO8/ha33D7dUqCAhPmSSrWt1lJc73NXcPz8');
+meta::function('compile', <<'__BGic8KOk19AvsJI5t2yZ/R/ONbJ+lvK9Yy4EB15Zib4');
 my $tex_command         = tex();
 my $pdftex_command      = pdftex();
 my $filename            = 'document';
@@ -628,21 +628,11 @@ $pdftex_command =~ s+__INPUT_FILE__+$temporary_directory/$filename.tex+g;
 mkdir $temporary_directory;
 file::write("$temporary_directory/$filename.tex", $contents);
 
-if (&{'table-of-contents'}()) {
-  print "First invocation of TeX:\n";
-  system($tex_command);
-  print "Second invocation of TeX:\n";
-  system($tex_command);
-  print "PDFTeX:\n";
-  system($pdftex_command);
-} else {
-  print "PDFTeX:\n";
-  system($pdftex_command);
-}
+my $result = &{'table-of-contents'}() ? system($tex_command) || system($tex_command) || system($pdftex_command) : system($pdftex_command);
 
-associate('data::pdf-output-file', my $result = "$temporary_directory/$filename.pdf", execute => 1);
+associate('data::pdf-output-file', "$temporary_directory/$filename.pdf", execute => 1);
 $result;
-__HfmDCotLaO8/ha33D7dUqCAhPmSSrWt1lJc73NXcPz8
+__BGic8KOk19AvsJI5t2yZ/R/ONbJ+lvK9Yy4EB15Zib4
 
 meta::function('compile-to-tex', <<'__cvWyD1kaLfBVnSppeGw/hSpleoWxLARJQwP1tUKvebc');
 my ($document) = document();
@@ -766,11 +756,10 @@ my @new_lines = map($_ . ' ' x ($length + 2 - length($_)) . ($inverses{$_} || ''
 join "\n", @new_lines;
 __S5EydJRu+YIfcFmTMz1ZHX0cANJq32bU5JnYCe1tWdk
 
-meta::function('make', <<'__8mAUcwqcvcEhgs6tEjHaIx3uF9QOC+9DAI7NmulvJ74');
-compile();
-view();
+meta::function('make', <<'__iyMeXI5V4AfTzDMQu6wYbr6t/bNwBMAeh7RxjklLF7E');
+compile() || view();
 clean();
-__8mAUcwqcvcEhgs6tEjHaIx3uF9QOC+9DAI7NmulvJ74
+__iyMeXI5V4AfTzDMQu6wYbr6t/bNwBMAeh7RxjklLF7E
 
 meta::function('mv', <<'__ijyNZ8r34FVK0Ki9/Q0Irx5k9U0pZ+/frrdlu+qkEP4');
 my ($from, $to) = @_;
