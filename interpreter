@@ -359,7 +359,7 @@ meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXb
   :.
 __dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI
 
-meta::cpp_section('introduction', <<'__8jm78f4224NkyWuQQRowqvYIeDeaGygAApEQespBF3Y');
+meta::cpp_section('introduction', <<'__C6qICNa+XfB/vOyRWHBuc9smKa6vQtVjGhYHe1v+q1c');
 - Introduction to Template Patterns
   \label{sec:introduction}
   Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
@@ -579,22 +579,115 @@ meta::cpp_section('introduction', <<'__8jm78f4224NkyWuQQRowqvYIeDeaGygAApEQespBF
     ::
     template<template<template<class x> class f,
                       template<class y> class g> class compose>
-    struct ...
+    struct composer {...};
     :.
 
-    This is equivalent to \verb|((a -> b), (c -> d)) -> e|. As far as I know there is no way to specify the return type of a function using template syntax.
+    This is equivalent to \verb|composer :: ((a -> b), (c -> d)) -> e|. As far as I know there is no way to specify anything about the return type of a function using template syntax.
 
     I'm not using template types in this project for a couple of reasons. First, declaring formals uses names (I'm actually not sure whether those names are considered reserved by C++, but I
     assume so). Second, it isn't possible to encode slot types, and all invocation in the lambda-calculus encoding is done with the \verb|::apply| slot.
 
+  - Conditionals
+    Templates don't model conditionals {\em per se}. Rather, you can create conditionals by using pattern matching and explicit specialization. There are some weird limitations about this, but
+    here is the basic idea:
+
+    :: cpp name=examples/specialization.cc
+    #include <iostream>
+    #include "constants.h"
+
+    // General case
+    template<class t>
+    struct piecewise {
+      typedef t type;
+    };
+
+    // When t = has_a_number<50>, do this instead
+    template<>
+    struct piecewise<has_a_number<50>> {
+      typedef has_a_number<100> type;
+    };
+
+    typedef piecewise<has_a_number<3>>::type  general;
+    typedef piecewise<has_a_number<50>>::type specialized;
+
+    int main () {
+      std::cout << "general::number     = " << general::number     << std::endl <<
+                   "specialized::number = " << specialized::number << std::endl;
+    }
+    :.
+
+    - Limitations of inner specialization
+      Because terminal (i.e.~non-expanding) types are extensionally equivalent, pattern matching can be used to reliably specialize template expansions. The only case where this doesn't work
+      is inside a class:
+
+      :: cpp name=examples/inner-specialization-broken.cc
+      #warning This example is deliberately broken, so a compilation error is normal.
+
+      template<class t>
+      struct container {
+        template<class u>
+        struct piecewise {
+          typedef u type;
+        };
+
+        // Compiler complains about this:
+        template<>
+        struct piecewise<int> {
+          typedef t type;
+        };
+      };
+
+      typedef container<int>::piecewise<int>::type foo;
+      :.
+
+      The solution to this problem is to break the inner class outside of the outer one and uncurry its arguments:
+
+      :: cpp name=examples/inner-specialization.cc
+      #include <iostream>
+      #include "constants.h"
+
+      namespace inside_container {
+        template<class t, class u>
+        struct piecewise {
+          typedef u type;
+        };
+
+        template<class t>
+        struct piecewise<t, int> {
+          typedef t type;
+        };
+      }
+
+      template<class t>
+      struct container {
+        template<class u>
+        struct piecewise {
+          typedef typename inside_container::piecewise<t, u>::type type;
+        };
+      };
+
+      typedef has_a_number<1> t1;
+      typedef has_a_number<2> t2;
+      typedef container<t1>::piecewise<t2>::type  general;
+      typedef container<t1>::piecewise<int>::type specialized;
+
+      int main () {
+        std::cout << "general::number     = " << general::number     << std::endl <<
+                     "specialized::number = " << specialized::number << std::endl;
+      }
+      :.
+
+      The namespace here isn't necessary, but it hides what normally gets hidden when you create an anonymous closure. Also notice that it must be declared before \verb|container| due to C++'s
+      forward-reference semantics.\footnote{Despite this, template expansion is generally lazy in other ways.}
+
   - Makefile for examples
     This makefile will build all of the examples listed in \Ref{section}{sec:introduction}. It is available in the source distribution as \verb|src/makefile|, and should be run from inside
-    \verb|src|.
+    \verb|src|. Note that it requires your version of \verb|gcc| to support a fairly recent C++0x draft, as specified by \verb|-std=gnu++0x|.
 
     :: resource name=examples/makefile
-    WORKING = first-order-functions higher-order-functions \
-              indirect-functions apply-two-function
-    ERRORS  = indirect-functions-broken
+    WORKING = first-order-functions higher-order-functions indirect-functions \
+              apply-two-function specialization inner-specialization
+    ERRORS  = indirect-functions-broken inner-specialization-broken
 
     CC      = g++
     CC_OPTS = -g -Wall -std=gnu++0x
@@ -602,23 +695,16 @@ meta::cpp_section('introduction', <<'__8jm78f4224NkyWuQQRowqvYIeDeaGygAApEQespBF
     all: $(WORKING)
     broken: $(ERRORS)
 
-    .PHONY: run
-    run: all
-    	./first-order-functions
-    	./higher-order-functions
-    	./indirect-functions
-    	./apply-two-function
-
     .PHONY: clean
     clean:
     	rm -f $(WORKING) $(ERRORS)
 
     %: %.cc
-    	$(CC) $(CC_OPTS) $< -o $@
+    	$(CC) $(CC_OPTS) $< -o $@ || true
     :.
-__8jm78f4224NkyWuQQRowqvYIeDeaGygAApEQespBF3Y
+__C6qICNa+XfB/vOyRWHBuc9smKa6vQtVjGhYHe1v+q1c
 
-meta::cpp_section('preprocessor', <<'__LAsxsh1aSKtu3M+9TT2V3BSOq+7li3sHpeAVb1TsLQ4');
+meta::cpp_section('preprocessor', <<'__6iDJffs0P61xJlP3vcivix5EQiRrGFJdzoipyjljL8g');
 - Preprocessor Definitions
   The goal of this section is to define a small domain-specific language for building functions and defining variables. The basic operations are these:
 
@@ -659,6 +745,13 @@ meta::cpp_section('preprocessor', <<'__LAsxsh1aSKtu3M+9TT2V3BSOq+7li3sHpeAVb1TsL
 
     This will preserve the commas in the original expression.
 
+    Another solution is to define a macro that preserves commas in its arguments, and then wrap any comma-laden expressions with it:
+
+    ::
+    #define commas(args...) args
+    f(commas(foo<bar, bif>));
+    :.
+
   - Defining a global constant
     This is the simplest operation. It involves creating a \verb|typedef| without a scoping label, for example \verb|typedef foo bar|:
 
@@ -670,8 +763,18 @@ meta::cpp_section('preprocessor', <<'__LAsxsh1aSKtu3M+9TT2V3BSOq+7li3sHpeAVb1TsL
     first, and necessary because the variadic parameter should come last.
 
   - Defining a function
-    This requires 
-__LAsxsh1aSKtu3M+9TT2V3BSOq+7li3sHpeAVb1TsLQ4
+    Encoded functions generally look like this:
+
+    ::
+    template<parameters>
+    struct apply {
+      ...
+      typedef ... type;
+    };
+    :.
+
+    There is a challenge here, however. 
+__6iDJffs0P61xJlP3vcivix5EQiRrGFJdzoipyjljL8g
 
 meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
@@ -731,9 +834,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__nRG40oiYKvnv/O2WCFANLDNX+8/qXYnDCjje/jqpBbI');
-/tmp/interpreter.S9WwpW4+pnBAJV7E5tVstjltd+unE9Dgg31aoLjTJsY/document.pdf
-__nRG40oiYKvnv/O2WCFANLDNX+8/qXYnDCjje/jqpBbI
+meta::data('pdf-output-file', <<'__EMpQXnlIqX2Z47AG9fgCtZCvJu1m/e3JzgKfOnjpXAQ');
+/tmp/interpreter.bUk0VdZlNObFtAZ08-Ieg66wc4LSTnyjAMV8UPNFn4o/document.pdf
+__EMpQXnlIqX2Z47AG9fgCtZCvJu1m/e3JzgKfOnjpXAQ
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
