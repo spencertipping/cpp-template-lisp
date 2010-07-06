@@ -1,5 +1,5 @@
 WORKING = first-order-functions higher-order-functions indirect-functions \
-          apply-two-function specialization inner-specialization
+          apply-two-function specialization inner-specialization preprocessor/k
 ERRORS  = indirect-functions-broken inner-specialization-broken
 
 CC      = g++

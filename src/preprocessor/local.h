@@ -1,1 +1,1 @@
-#define local(name, value...) private: typedef typename value name;
+#define let(name, value...) private: typedef typename value name;
