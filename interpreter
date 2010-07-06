@@ -359,7 +359,7 @@ meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXb
   :.
 __dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI
 
-meta::cpp_section('introduction', <<'__yqjHpnID2POWO5nX7TB7uDUqTSqZYHk0xBmhFhCi+9Q');
+meta::cpp_section('introduction', <<'__S8WCUvGW4BYZTMs4UgYZCcyYQBiG1rXSYzj0I0NEC9w');
 - Introduction to Template Patterns
   Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
   declaration, time.\footnote{This makes it untyped. C++ templates also support function types using nested template syntax -- see \Ref{section}{sec:function-types}.} This section goes over
@@ -436,7 +436,7 @@ meta::cpp_section('introduction', <<'__yqjHpnID2POWO5nX7TB7uDUqTSqZYHk0xBmhFhCi+
     template parameters.}
 
     So we establish some conventions up front. Whenever you define a constant, it is used as-is without a contained \verb|typedef| that we have to know about. This is OK because we shouldn't
-    ever make assumptions about the members of types that are used as template parameters. 
+    ever make assumptions about the members of types that are used as template parameters.
 
   - Higher-order function encoding
     Higher-order functions are possible by encoding slots for invocations.\footnote{This is equivalent to the distinction between pure, extensional object-oriented programming and pure,
@@ -462,16 +462,36 @@ meta::cpp_section('introduction', <<'__yqjHpnID2POWO5nX7TB7uDUqTSqZYHk0xBmhFhCi+
     typedef k<t1>::apply<t2>::type should_be_t1;
 
     int main () {
-      std::cout << "t1::value           = " << t1::value           << std::endl <<
-                   "should_be_t1::value = " << should_be_t1::value << std::endl;
+      std::cout << "t1::number           = " << t1::number           << std::endl <<
+                   "should_be_t1::number = " << should_be_t1::number << std::endl;
     }
     :.
 
     In this example, \verb|foo2| has a call slot \verb|apply| that ultimately provides the value. So, for example, \verb|foo2<x>::apply<y>::type| is equivalent to the more concise
     \verb|foo2 x y| in Haskell, or \verb|((foo2 x) y)| in Scheme.
 
-  - $\beta$ expansion
-    
+    At this point it should be clear that nothing is standardized here. Top-level functions are invoked directly, whereas returned functions use \verb|::apply<x>|. Type results from template
+    invocations are accessed as \verb|::type|. One way to go about fixing it is to make a rule that a function gets encoded a bit less directly:
+
+    :: cpp name=examples/indirect-functions-broken.cc
+    #include <iostream>
+    #include "constants.h"
+    // Encoding the K combinator uniformly
+    struct k {
+      template<class t>
+      struct apply {
+        template<class u>
+        struct invoke_foobar {
+          typedef t type;
+        };
+
+        typedef invoke_foobar apply;
+      };
+    };
+    :.
+
+    However, if you compile it you get an error stating that you can't define a nested \verb|struct| with the same name as the outer one.
+
   - Makefile for examples
     This makefile will build all of the examples listed in the introduction.
 
@@ -480,11 +500,12 @@ meta::cpp_section('introduction', <<'__yqjHpnID2POWO5nX7TB7uDUqTSqZYHk0xBmhFhCi+
     run: all
     	./first-order-functions
     	./higher-order-functions
+    	./indirect-functions-broken
 
     %: %.cc
     	g++ -g -Wall $< -o $@
     :.
-__yqjHpnID2POWO5nX7TB7uDUqTSqZYHk0xBmhFhCi+9Q
+__S8WCUvGW4BYZTMs4UgYZCcyYQBiG1rXSYzj0I0NEC9w
 
 meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
@@ -544,9 +565,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__b1O6EdZpFSLGRqmZFHICemV3NCswnyoc/2fIE0oKcOE');
-/tmp/interpreter.5fFRnKdyccbmC0b2jZ-slaAYB3+LN1fo9OvO2lRxshg/document.pdf
-__b1O6EdZpFSLGRqmZFHICemV3NCswnyoc/2fIE0oKcOE
+meta::data('pdf-output-file', <<'__XNVTNhw74TRbQYz4OrJ3LTf+evoHT1ll+KUHObWtNQQ');
+/tmp/interpreter.CCgCLbJuQL7FjqegdGzjy6BHMELnB3674v3OwcKfOqU/document.pdf
+__XNVTNhw74TRbQYz4OrJ3LTf+evoHT1ll+KUHObWtNQQ
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince

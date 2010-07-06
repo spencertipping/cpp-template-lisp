@@ -16,6 +16,6 @@ typedef has_a_number<6> t2;
 typedef k<t1>::apply<t2>::type should_be_t1;
 
 int main () {
-  std::cout << "t1::value           = " << t1::value           << std::endl <<
-               "should_be_t1::value = " << should_be_t1::value << std::endl;
+  std::cout << "t1::number           = " << t1::number           << std::endl <<
+               "should_be_t1::number = " << should_be_t1::number << std::endl;
 }
