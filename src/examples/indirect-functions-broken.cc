@@ -1,14 +1,12 @@
-#include <iostream>
-#include "constants.h"
-// Encoding the K combinator uniformly
+#warning This example is deliberately broken, so a compilation error is normal.
+
+// Encoding the K combinator uniformly, but with compile errors
 struct k {
   template<class t>
   struct apply {
     template<class u>
-    struct invoke_foobar {
+    struct apply {
       typedef t type;
     };
-
-    typedef invoke_foobar apply;
   };
 };

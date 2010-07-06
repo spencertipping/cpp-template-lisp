@@ -1,8 +1,21 @@
-all: first-order-functions higher-order-functions
+WORKING = first-order-functions higher-order-functions indirect-functions
+ERRORS  = indirect-functions-broken
+
+CC      = g++
+CC_OPTS = -g -Wall
+
+all: $(WORKING)
+broken: $(ERRORS)
+
+.PHONY: run
 run: all
 	./first-order-functions
 	./higher-order-functions
-	./indirect-functions-broken
+	./indirect-functions
+
+.PHONY: clean
+clean:
+	rm -f $(WORKING) $(ERRORS)
 
 %: %.cc
-	g++ -g -Wall $< -o $@
+	$(CC) $(CC_OPTS) $< -o $@
