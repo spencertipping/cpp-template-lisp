@@ -1,0 +1,1383 @@
+#!/usr/bin/perl
+
+use File::Temp  'tempfile';
+use Carp        'carp';
+use Digest::SHA 'sha256_base64';
+
+$|++;
+
+my %data;
+my %transient;
+my %externalized_functions;
+my @data_types;
+my @script_args;
+
+sub meta::define_form {
+  my ($namespace, $delegate) = @_;
+  push @data_types, $namespace;
+  *{"meta::${namespace}::implementation"} = $delegate;
+  *{"meta::$namespace"} = sub {
+    my ($name, $value) = @_;
+    chomp $value;
+    $data{"${namespace}::$name"} = $value;
+    $delegate->($name, $value);
+  };
+}
+
+meta::define_form 'meta', sub {
+  my ($name, $value) = @_;
+  eval $value;
+  carp $@ if $@;
+};
+
+meta::meta('datatypes::bootstrap', <<'__guYWiOv4zBmdrlI3k3sW7f/q/xsX38Xvzz0dwwLCIRM');
+meta::define_form 'bootstrap', sub {};
+__guYWiOv4zBmdrlI3k3sW7f/q/xsX38Xvzz0dwwLCIRM
+
+meta::meta('datatypes::code_filter', <<'__gIaVDqDoWT04Y/vzEYyoyadmT36MLhB1ERa09udQZ9M');
+meta::define_form 'code_filter', sub {
+  my ($name, $value) = @_;
+  *{"code_filter::$name"} = eval "sub {\n$value\n}";
+  carp $@ if $@;
+};
+__gIaVDqDoWT04Y/vzEYyoyadmT36MLhB1ERa09udQZ9M
+
+meta::meta('datatypes::cpp_section', <<'__iSq5SVn3Vw0i1zHw0zegKAuS4cKl8QE2lqgoLXAYscI');
+meta::define_form 'cpp_section', sub {
+  my ($name, $value) = @_;
+  $externalized_functions{$name} = "cpp_section::$name";
+  *{$name} = sub {
+    edit("cpp_section::$name");
+  };
+};
+__iSq5SVn3Vw0i1zHw0zegKAuS4cKl8QE2lqgoLXAYscI
+
+meta::meta('datatypes::data', <<'__s2euAFkA/SbXvMzOkLZXrqX3TdtBzEODSWBAt7wXECA');
+meta::define_form 'data', sub {
+  my ($name, undef) = @_;
+  $externalized_functions{$name} = "data::$name";
+  *{$name} = sub {
+    associate("data::$name", $_[1] || join('', <STDIN>)) if @_ > 0 && $_[0] eq '=';
+    edit("data::$name")                                  if $_[0] eq 'edit';
+    retrieve("data::$name");
+  };
+};
+__s2euAFkA/SbXvMzOkLZXrqX3TdtBzEODSWBAt7wXECA
+
+meta::meta('datatypes::function', <<'__XSIHGGHv0Sh0JBj9KIrP/OzuuB2epyvn9pgtZyWE6t0');
+meta::define_form 'function', sub {
+  my ($name, $value) = @_;
+  $externalized_functions{$name} = "function::$name";
+  *{$name} = eval "sub {\n$value\n}";
+  carp $@ if $@;
+};
+__XSIHGGHv0Sh0JBj9KIrP/OzuuB2epyvn9pgtZyWE6t0
+
+meta::meta('datatypes::internal_function', <<'__heBxmlI7O84FgR+9+ULeiCTWJ4hqd079Z02rZnl9Ong');
+meta::define_form 'internal_function', sub {
+  my ($name, $value) = @_;
+  *{$name} = eval "sub {\n$value\n}";
+  carp $@ if $@;
+};
+__heBxmlI7O84FgR+9+ULeiCTWJ4hqd079Z02rZnl9Ong
+
+meta::meta('datatypes::java_section', <<'__+OMNe3P39/PtqlXYIuMYT/tIyOF3QVpZJcXdO0xbkRw');
+meta::define_form 'java_section', sub {
+  my ($name, $value) = @_;
+  $externalized_functions{$name} = "java_section::$name";
+  *{$name} = sub {
+    edit("java_section::$name");
+  };
+};
+__+OMNe3P39/PtqlXYIuMYT/tIyOF3QVpZJcXdO0xbkRw
+
+meta::meta('datatypes::library', <<'__Uu9nRiHABRn+x19zBWmHpJF8gbfMA5v5MlpNoSE8MqE');
+meta::define_form 'library', sub {
+  my ($name, $value) = @_;
+  eval $value;
+  $externalized_functions{$name} = "library::$name";
+  *{$name} = sub {edit("library::$name")};
+  warn $@ if $@;
+};
+__Uu9nRiHABRn+x19zBWmHpJF8gbfMA5v5MlpNoSE8MqE
+
+meta::meta('datatypes::line_filter', <<'__/k1BhEweDsgaEdqrALbIEjvKhsVrk/hv//e/KPydA6A');
+meta::define_form 'line_filter', sub {
+  my ($name, $value) = @_;
+  *{"line_filter::$name"} = eval "sub {\n$value\n}";
+  carp $@ if $@;
+};
+__/k1BhEweDsgaEdqrALbIEjvKhsVrk/hv//e/KPydA6A
+
+meta::meta('datatypes::list-type', <<'__OKczvJ+6wi8VPNFcZ9ohlXjw+ychodWCfcELdli9p+w');
+meta::define_form '_list_type', sub {
+  my ($outer_name, $outer_value) = @_;
+  $externalized_functions{$outer_name} = "_list_type::$outer_name";
+  
+  *{$outer_name} = sub {
+    associate("${outer_value}::$_", '') for @_;
+  };
+
+  meta::define_form $outer_value, sub {
+    my ($name, $value) = @_;
+    $externalized_functions{$name} = "${outer_value}::$name";
+    *{$name} = sub {
+      my ($command, @xs) = @_;
+      my $xs = join "\n", @xs;
+      return grep length, split /\n/, retrieve("${outer_value}::$name")               if $command eq 'items';
+      associate("${outer_value}::$name", retrieve("${outer_value}::$name") . "\n$xs") if $command eq 'add' || $command eq '<<';
+      edit("${outer_value}::$name")                                                   if $command eq 'edit';
+      return retrieve("${outer_value}::$name");
+    };
+  };
+};
+__OKczvJ+6wi8VPNFcZ9ohlXjw+ychodWCfcELdli9p+w
+
+meta::meta('datatypes::message-color', <<'__nWmJgsP4S3LFdMPQnL+foYc9c5fgqIlEm6RppolzoX0');
+meta::define_form 'message_color', sub {
+  my ($name, $value) = @_;
+  $externalized_functions{$name} = "message_color::$name";
+  terminal::color($name, $value);
+  *{$name} = sub {
+    associate("message_color::$name", $_[1] || join('', <STDIN>)) if @_ > 0 && $_[0] eq '=';
+    edit("message_color::$name")                                  if $_[0] eq 'edit';
+    retrieve("message_color::$name");
+  };
+};
+__nWmJgsP4S3LFdMPQnL+foYc9c5fgqIlEm6RppolzoX0
+
+meta::meta('datatypes::note', <<'__TGOjJwmj+QJp1giUQqg2bEaQe8RvqnrFEqyZhIpSC34');
+meta::define_form 'note', sub {
+  my ($name, undef) = @_;
+  $externalized_functions{$name} = "note::$name";
+  *{$name} = sub {edit("note::$name")};
+};
+__TGOjJwmj+QJp1giUQqg2bEaQe8RvqnrFEqyZhIpSC34
+
+meta::meta('datatypes::unlit_converter', <<'__2X1thh9LQ0oUWCfeWj297YwiGJA/klB7hVI2sWEFtEE');
+meta::define_form 'unlit_converter', sub {
+  my ($name, $value) = @_;
+  *{"unlit_converter::$name"} = eval "sub {\n$value\n}";
+  carp $@ if $@;
+};
+__2X1thh9LQ0oUWCfeWj297YwiGJA/klB7hVI2sWEFtEE
+
+meta::meta('datatypes::vim-highlighter', <<'__vsGBLVDC3S+pX/k/zl5CgXeAQz2QjpBkLgx0CJ4vcn0');
+meta::define_form 'vim_highlighter', \&meta::bootstrap::implementation;
+__vsGBLVDC3S+pX/k/zl5CgXeAQz2QjpBkLgx0CJ4vcn0
+
+meta::meta('internal::runtime', <<'__Nd6Dp1A6nL7yAGeoRfeZETeaW8vnPN8HI9Diqo66vDA');
+meta::define_form 'internal', \&meta::meta::implementation;
+__Nd6Dp1A6nL7yAGeoRfeZETeaW8vnPN8HI9Diqo66vDA
+
+meta::_list_type('list', <<'__ozA5XMClOtEgdzZUav/0c1lAk3Vku/dc4e2tQHgNkTk');
+list
+__ozA5XMClOtEgdzZUav/0c1lAk3Vku/dc4e2tQHgNkTk
+
+meta::bootstrap('initialization', <<'__plktoDCjGQioE48vwfrH0xL3ulcYnTWp+fUvaFwRnnc');
+#!/usr/bin/perl
+
+use File::Temp  'tempfile';
+use Carp        'carp';
+use Digest::SHA 'sha256_base64';
+
+$|++;
+
+my %data;
+my %transient;
+my %externalized_functions;
+my @data_types;
+my @script_args;
+
+sub meta::define_form {
+  my ($namespace, $delegate) = @_;
+  push @data_types, $namespace;
+  *{"meta::${namespace}::implementation"} = $delegate;
+  *{"meta::$namespace"} = sub {
+    my ($name, $value) = @_;
+    chomp $value;
+    $data{"${namespace}::$name"} = $value;
+    $delegate->($name, $value);
+  };
+}
+
+meta::define_form 'meta', sub {
+  my ($name, $value) = @_;
+  eval $value;
+  carp $@ if $@;
+};
+
+__plktoDCjGQioE48vwfrH0xL3ulcYnTWp+fUvaFwRnnc
+
+meta::bootstrap('pod', <<'__3uM+GRhsAnxE6BFehM2nkGju4J93JQjqONxKbpE0Cdg');
+
+=head1 NAME
+
+object - Stateful file-based object
+
+=head1 SYNOPSYS
+
+object [options] action [arguments...]
+
+object shell
+
+=head1 DESCRIPTION
+
+Stateful objects preserve their state between executions by rewriting themselves. Each time the script exits it replaces its contents with its new state. Thus
+state management, for user-writable scripts, is completely transparent.
+
+An object rewrites itself only if its state has changed. This may seem like a dangerous operation, but some checks are put into place to ensure that it goes
+smoothly. First, the object is initially written to a separate file. Next, that file is executed and asked to provide a hashsum of its contents. The original
+object is rewritten only if that hashsum is correct. This ensures that the replacement object is functional and has the right data.
+
+Currently the only known way to lose your data is to edit the serialization-related functions in such a way that they no longer function. However, this is not
+something most people will normally do. In the future there may be a locking mechanism to prevent unintentional edits of these attributes.
+
+=cut
+
+__3uM+GRhsAnxE6BFehM2nkGju4J93JQjqONxKbpE0Cdg
+
+meta::code_filter('cpp', <<'__RnBPiqLeW7JfaMHW0CgoNF/vpNWmNs4SJULj+/ehEjo');
+use File::Path 'mkpath';
+use File::Basename 'dirname';
+
+my ($line, %settings) = @_;
+
+my $settings = $settings{'name'};
+if ($settings =~ /\scpp(\s|$)/) {
+  my %properties;
+  my @keys_and_values = split /\s+/, $settings;
+  for (@keys_and_values) {
+    my ($k, $v) = split /=/;
+    $properties{$k} = $v;
+  }
+
+  if (my $filename = $properties{'name'}) {
+    mkpath(dirname(my $path = &{'source-directory'}() . "/$filename"));
+    open my $fh, $settings{'begin'} ? '>' : '>>', $path;
+    print $fh "$line\n" unless $settings{'begin'} || $settings{'end'};
+    close $fh;
+
+    return "\\lstset{caption=$filename}\n\\begin{cppcode}" if $settings{'begin'};
+  } else {
+    return '\begin{cppcode}' if $settings{'begin'};
+  }
+
+  return '\end{cppcode}' if $settings{'end'};
+}
+
+return $line;
+__RnBPiqLeW7JfaMHW0CgoNF/vpNWmNs4SJULj+/ehEjo
+
+meta::code_filter('java', <<'__Q16rFeNkyBdV6W9RLL9GKTJwnstfRqIfBpmDbVFNOqQ');
+use File::Path 'mkpath';
+
+my ($line, %settings) = @_;
+
+my $settings = $settings{'name'};
+if ($settings =~ /\sjava(\s|$)/) {
+  my %properties;
+  my @keys_and_values = split /\s+/, $settings;
+  for (@keys_and_values) {
+    my ($k, $v) = split /=/;
+    $properties{$k} = $v;
+  }
+
+  if ($properties{'class'}) {
+    my $classname         = $properties{'class'};
+    my $package_directory = $properties{'package'};
+    $package_directory =~ tr[.][/];
+
+    mkpath(my $directory = &{'source-directory'}() . '/' . $package_directory);
+    open my $fh, $settings{'begin'} ? '>' : '>>', "$directory/${classname}.java";
+    print $fh "$line\n" unless $settings{'begin'} || $settings{'end'};
+    close $fh;
+
+    return "\\lstset{caption=$properties{package}.$properties{class}}\n\\begin{javacode}" if $settings{'begin'};
+  }
+
+  return '\begin{javacode}' if $settings{'begin'};
+  return '\end{javacode}'   if $settings{'end'};
+}
+
+return $line;
+__Q16rFeNkyBdV6W9RLL9GKTJwnstfRqIfBpmDbVFNOqQ
+
+meta::code_filter('resource', <<'__gnuMnVX94wNmeabRscK/Tp+seTmMoqXAeoOdJ+H8ZX0');
+use File::Path 'mkpath';
+use File::Basename 'dirname';
+
+my ($line, %settings) = @_;
+
+my $settings = $settings{'name'};
+if ($settings =~ /\sresource(\s|$)/) {
+  my %properties;
+  my @keys_and_values = split /\s+/, $settings;
+  for (@keys_and_values) {
+    my ($k, $v) = split /=/;
+    $properties{$k} = $v;
+  }
+
+  if (my $filename = $properties{'name'}) {
+    mkpath(dirname(my $path = &{'source-directory'}() . "/$filename"));
+    open my $fh, $settings{'begin'} ? '>' : '>>', $path;
+    print $fh "$line\n" unless $settings{'begin'} || $settings{'end'};
+    close $fh;
+
+    return "\\lstset{caption=$filename}\n\\begin{resource}" if $settings{'begin'};
+  } else {
+    return '\begin{resource}' if $settings{'begin'};
+  }
+
+  return '\end{resource}' if $settings{'end'};
+}
+
+return $line;
+__gnuMnVX94wNmeabRscK/Tp+seTmMoqXAeoOdJ+H8ZX0
+
+meta::code_filter('verbatim', <<'__AON9bxWzZOMpERGSJVrit8dkijYb5Re8IIg2PEC5i1s');
+my ($line, %settings) = @_;
+
+unless ($settings{'name'}) {
+  return '\begin{verbatim}' if $settings{'begin'};
+  return '\end{verbatim}'   if $settings{'end'};
+}
+
+return $line;
+__AON9bxWzZOMpERGSJVrit8dkijYb5Re8IIg2PEC5i1s
+
+meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI');
+- Introduction to C++ Literate Coding
+  The C++ literate code interface is much like the Java one, except that code sections use the \verb|name=x| attribute rather than \verb|class=| and \verb|package=|. The name is expected to
+  include an extension, so for example \verb|:: cpp name=src/foo.h| is a correct heading.
+
+  :: cpp name=hello.cc
+  #include<iostream>
+  int main () {
+    std::cout << "Hello world!" << std::endl;
+  }
+  :.
+__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI
+
+meta::cpp_section('introduction', <<'__WCz2C8YupFE7yta1btMsH3VcZkw49UUNWBET1gMm2jE');
+- Introduction to Template Patterns
+  Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
+  declaration, time.\footnote{This makes it untyped. C++ templates also support function types using nested template syntax -- see \Ref{section}{sec:function-types}.} This section goes over
+  the encoding of lambda calculus in the template system.
+
+  - Encoding constants
+    Constants are simply \verb|struct|s, \verb|class|es, or other types that don't take template parameters. It isn't a problem if they do take template parameters, of course; those will
+    simply be specified later once the constant has propagated through the lambda expansion.
+
+    :: cpp name=examples/constants.h
+    // Defining a constant term
+    struct foo {
+      enum {value = 10};
+    };
+
+    // Defining a global constant also_foo = foo
+    typedef foo also_foo;
+
+    // Defining two templated terms that act as constants
+    template<class t> struct has_a_field {
+      t field;
+    };
+
+    template<int n> struct has_a_number {
+      enum {number = n};
+    };
+    :.
+
+  - First-order function encoding
+    The idea is to have \verb|struct|s that represent terms of the calculus. If they are templates, then they represent functions (which are also terms). For example:
+
+    :: cpp name=examples/first-order-functions.cc
+    #include <iostream>
+    #include "constants.h"
+
+    // Defining the identity function, where the result
+    // can be retrieved by specifying bar<T>::type
+    template<class t> struct bar {
+      typedef t type;
+    };
+
+    // Defining a global constant identity_result = bar(also_foo)
+    // This is analogous to the code 'let identity_result = bar also_foo'
+    // in Haskell.
+    typedef bar<also_foo>::type identity_result;
+
+    int main () {
+      std::cout << "foo::value             = " << foo::value             << std::endl <<
+                   "also_foo::value        = " << also_foo::value        << std::endl <<
+                   "identity_result::value = " << identity_result::value << std::endl;
+    }
+    :.
+
+    In practice there is some difficulty already. Notice the use of \verb|::type| to retrieve the value of a function application. This slot had to be assumed by the caller; it is analogous to
+    JavaScript code like this:
+
+    :: resource name=examples/unfriendly-identity.js
+    // An unfriendly identity function.
+    var identity = function (x) {
+      return {type: x};
+    };
+
+    // Invocations must now look like this:
+    var y = identity(x).type;
+    :.
+
+    Having issues like this percolating through the design can be a real problem. Unless the slot is passed to every invocation site,\footnote{It also must be forwarded, which isn't possible in
+    C++ to the best of my knowledge} invocations will be divergent and will create errors. This means that return values should be unified to a single slot, in this library (and the Boost MPL)
+    called \verb|::type|.\footnote{This may seem counter-intuitive, since the types here encode values in lambda-calculus. However, it does serve a mnemonic purpose later when value types are
+    used as template parameters, and dependent value-type relations are established. Once this happens it becomes useful to explicitly distinguish between type template parameters and value
+    template parameters.}
+
+    So we establish some conventions up front. Whenever you define a constant, it is used as-is without a contained \verb|typedef| that we have to know about. This is OK because we shouldn't
+    ever make assumptions about the members of types that are used as template parameters. 
+
+  - Higher-order function encoding
+    Higher-order functions are possible by encoding slots for invocations.\footnote{This is equivalent to the distinction between pure, extensional object-oriented programming and pure,
+    extensional functional programming. In the latter, term juxtaposition (e.g. {\tt f x}) constitutes invocation of the default slot, generally referred to as {\em apply}. In the former,
+    slots are explicitly named, as would be the case in a language such as Java -- thus juxtaposition has no meaning on its own.} We do this by declaring another template inside the first:
+
+    :: cpp name=examples/higher-order-functions.cc
+    #include <iostream>
+    #include "constants.h"
+
+    // Defining the K combinator
+    template<class t>
+    struct k {
+      template<class u>
+      struct apply {
+        typedef t type;
+      };
+    };
+
+    // Using that on two types
+    typedef has_a_number<5> t1;
+    typedef has_a_number<6> t2;
+    typedef k<t1>::apply<t2>::type should_be_t1;
+
+    int main () {
+      std::cout << "t1::value           = " << t1::value           << std::endl <<
+                   "should_be_t1::value = " << should_be_t1::value << std::endl;
+    }
+    :.
+
+    In this example, \verb|foo2| has a call slot \verb|apply| that ultimately provides the value. So, for example, \verb|foo2<x>::apply<y>::type| is equivalent to the more concise
+    \verb|foo2 x y| in Haskell, or \verb|((foo2 x) y)| in Scheme.
+
+  - $\beta$ expansion
+    
+  - Makefile for examples
+    This makefile will build all of the examples listed in the introduction.
+
+    :: resource name=examples/makefile
+    all: first-order-functions higher-order-functions
+    run: all
+    	./first-order-functions
+    	./higher-order-functions
+
+    %: %.cc
+    	g++ -g -Wall $< -o $@
+    :.
+__WCz2C8YupFE7yta1btMsH3VcZkw49UUNWBET1gMm2jE
+
+meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
+shell
+__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc
+
+meta::data('document', <<'__OPVkAwgTq0fP89VM9AJc9ZQGEf/ajSNVY7YqmNsYViw');
+= C++ Template Lisp Interpreter
+a Spencer Tipping
+begin
+
+%section(cpp_section::introduction)
+%section(cpp_section::lists)
+__OPVkAwgTq0fP89VM9AJc9ZQGEf/ajSNVY7YqmNsYViw
+
+meta::data('header', <<'__XdOv45sIvn+EFSvy5PzBquPctSr3tCbdAAEUIAjfHIY');
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,pxfonts,listings,color}
+\usepackage[colorlinks]{hyperref}
+
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox[rgb]{0.2,0.2,0.2}{\parbox{\textwidth}{\hspace{2pt}#1#2\tt{}#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
+
+\definecolor{gray95}{rgb}{0.95,0.95,0.95}
+
+\newcommand{\Ref}[2]{\hyperref[#2]{#1 \ref*{#2}}}
+
+\lstset{columns=fixed,basicstyle={\scriptsize\tt},basewidth=0.5em,xleftmargin=5pt,showstringspaces=false}
+
+\lstnewenvironment{javacode}{\lstset{language=java}}{}
+\lstnewenvironment{cppcode} {\lstset{language=c++}} {}
+\lstnewenvironment{resource}{}{}
+__XdOv45sIvn+EFSvy5PzBquPctSr3tCbdAAEUIAjfHIY
+
+meta::data('meta-associations', <<'__DVlfIHkYXJ4+o/MvyDFYl59WCQmDx7HU8XchAsqz9/w');
+^function:: .pl
+^library:: .pl
+^internal_function:: .pl
+^meta:: .pl
+^bootstrap:: .pl
+^data::document$ .cltex
+^vim_highlighter:: .vim
+^java_section:: .javatex
+^cpp_section:: .cpptex
+^unlit_converter:: .pl
+^line_filter:: .pl
+^code_filter:: .pl
+^profile:: .pl
+^data::header$ .tex
+__DVlfIHkYXJ4+o/MvyDFYl59WCQmDx7HU8XchAsqz9/w
+
+meta::data('name', <<'__lmbZ6ImUR3NcuYl7d9uxIXVP1NUDYJdYdVvT/a46SyI');
+interpreter
+__lmbZ6ImUR3NcuYl7d9uxIXVP1NUDYJdYdVvT/a46SyI
+
+meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
+/tmp
+__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
+
+meta::data('pdf-output-file', <<'__vWECtuSTGBxwEsb6rvHNoG7Yg02FlS03fyZKtx5CxdY');
+/tmp/interpreter.N9AgYMPRhf5orDsGJCqaZZTSFwE6vdyE+A1bbx2Kitc/document.pdf
+__vWECtuSTGBxwEsb6rvHNoG7Yg02FlS03fyZKtx5CxdY
+
+meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
+evince
+__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A
+
+meta::data('pdftex', <<'__aHolEJEGN4wnHiydZyVzwRrETVuJhJOGo/nKL9tsLRY');
+pdflatex -output-directory=__TEMPORARY_DIRECTORY__ __INPUT_FILE__
+__aHolEJEGN4wnHiydZyVzwRrETVuJhJOGo/nKL9tsLRY
+
+meta::data('source-directory', <<'__VkDVzaXOmnQE8XmKW8k6UWWufiR1o0n4yrKYQjtyh7w');
+./src
+__VkDVzaXOmnQE8XmKW8k6UWWufiR1o0n4yrKYQjtyh7w
+
+meta::data('table-of-contents', <<'__a4ayc/80/OGda4BO/1o/V0etpOqiLx1JwB5S3beHW0s');
+1
+__a4ayc/80/OGda4BO/1o/V0etpOqiLx1JwB5S3beHW0s
+
+meta::data('tex', <<'__36pVFkgFfbTr/DrquMMaLrTY5F5S/VJ5Z3Jc90KC+q4');
+latex -output-directory=__TEMPORARY_DIRECTORY__ __INPUT_FILE__
+__36pVFkgFfbTr/DrquMMaLrTY5F5S/VJ5Z3Jc90KC+q4
+
+meta::function('add-to', <<'__KBgra0vG1gIsUI8CCVf4ZEdCatZDCdVO6HuUx+jOJ9Q');
+my ($filename) = @_;
+my @members = grep /^implementation::/, keys %data;
+
+for (@members) {
+  my $destination_name = basename($_);
+  open my($handle), "| $filename import $destination_name" or messages::error("Attribute $_ could not be written.");
+  print $handle retrieve($_);
+  close $handle;
+}
+__KBgra0vG1gIsUI8CCVf4ZEdCatZDCdVO6HuUx+jOJ9Q
+
+meta::function('cat', <<'__h2PeSpk/pPmrzLRTTofdLTbhj06IWUw5WWke6ggUsdk');
+my ($name) = @_;
+$data{$name};
+__h2PeSpk/pPmrzLRTTofdLTbhj06IWUw5WWke6ggUsdk
+
+meta::function('clean', <<'__YiaR22ZfeeFhhPYBUFHWBZqstuOzKtkv2XqmTuXhy1E');
+my $output_directory = &{'pdf-output-file'}();
+$output_directory =~ s+/.*++g;
+unlink <$output_directory/*>;
+rmdir $output_directory;
+__YiaR22ZfeeFhhPYBUFHWBZqstuOzKtkv2XqmTuXhy1E
+
+meta::function('clone', <<'__qP6xPZE75s9g0XJIiC6FGw0vnj2j0glUzsAHxyA3lvY');
+for (@_) {
+  if ($_) {
+    eval {
+      file::write($_, serialize(), noclobber => 1);
+      chmod(0700, $_);
+      print "File $_ cloned successfully.\n";
+    };
+
+    print "$@\n" if $@;
+  }
+}
+__qP6xPZE75s9g0XJIiC6FGw0vnj2j0glUzsAHxyA3lvY
+
+meta::function('compile', <<'__HfmDCotLaO8/ha33D7dUqCAhPmSSrWt1lJc73NXcPz8');
+my $tex_command         = tex();
+my $pdftex_command      = pdftex();
+my $filename            = 'document';
+
+my $contents            = &{'compile-to-tex'}();
+my $output_directory    = &{'output-dir'}();
+chomp $output_directory;
+
+my $temporary_directory = state_based_filename();
+$temporary_directory =~ s+^.*/++;
+$temporary_directory = "$output_directory/$temporary_directory";
+
+$tex_command    =~ s/__TEMPORARY_DIRECTORY__/$temporary_directory/g;
+$tex_command    =~ s+__INPUT_FILE__+$temporary_directory/$filename.tex+g;
+
+$pdftex_command =~ s/__TEMPORARY_DIRECTORY__/$temporary_directory/g;
+$pdftex_command =~ s+__INPUT_FILE__+$temporary_directory/$filename.tex+g;
+
+mkdir $temporary_directory;
+file::write("$temporary_directory/$filename.tex", $contents);
+
+if (&{'table-of-contents'}()) {
+  print "First invocation of TeX:\n";
+  system($tex_command);
+  print "Second invocation of TeX:\n";
+  system($tex_command);
+  print "PDFTeX:\n";
+  system($pdftex_command);
+} else {
+  print "PDFTeX:\n";
+  system($pdftex_command);
+}
+
+associate('data::pdf-output-file', my $result = "$temporary_directory/$filename.pdf", execute => 1);
+$result;
+__HfmDCotLaO8/ha33D7dUqCAhPmSSrWt1lJc73NXcPz8
+
+meta::function('compile-to-tex', <<'__cvWyD1kaLfBVnSppeGw/hSpleoWxLARJQwP1tUKvebc');
+my ($document) = document();
+$document = &$_($document) for (grep /^unlit_converter::/, sort keys %data);
+$document;
+__cvWyD1kaLfBVnSppeGw/hSpleoWxLARJQwP1tUKvebc
+
+meta::function('cp', <<'__yn1SQkcEk6o+gnuCy3QGVFtQb2piaCoUdJPGUkLjpD4');
+my ($from, $to) = @_;
+$data{$to} = $data{$from} if $data{$from};
+messages::error("No such attribute $from") unless $data{$from};
+$data{$from};
+__yn1SQkcEk6o+gnuCy3QGVFtQb2piaCoUdJPGUkLjpD4
+
+meta::function('create', <<'__YDNTuzkJSNUIk4tbdwxep6/rT8uGnceIj7rljM9gusc');
+my ($name, $value) = @_;
+messages::error("Attribute $name already exists.") if grep {$_ eq $name} keys %data;
+if ($value) {
+  associate($name, $value);
+} else {
+  associate($name,'');
+  edit ($name);
+}
+__YDNTuzkJSNUIk4tbdwxep6/rT8uGnceIj7rljM9gusc
+
+meta::function('e', <<'__VOcQy5WG275NZGlFODdYHYBe3oJ7/CHmTT/L9O1I6t0');
+edit('data::document', extension => '.tex');
+reload();
+__VOcQy5WG275NZGlFODdYHYBe3oJ7/CHmTT/L9O1I6t0
+
+meta::function('edit', <<'__rAkSOSll0evjt/D0qmnz2M++ACqz6cPtN8TLTHdQUJE');
+my ($name, %options) = @_;
+
+my $meta_extension = join '', grep {
+  my $s = $_;
+  $s =~ s/\s.*$//;
+  $name =~ /$s/
+} split /\n/, &{'meta-associations'}();
+
+$meta_extension =~ s/^.*\s//;
+chomp $meta_extension;
+
+messages::error("Attribute $name does not exist.") unless grep {$_ eq $name} keys %data;
+associate($name, invoke_editor_on($data{$name} || "# Attribute $name", %options, extension => $meta_extension),
+          execute => $name !~ /^internal::/ && $name !~ /^bootstrap::/);
+delete $data{$name} if length($data{$name}) == 0;
+
+save();
+__rAkSOSll0evjt/D0qmnz2M++ACqz6cPtN8TLTHdQUJE
+
+meta::function('exists', <<'__bxU1sDtIh3+P1x0HuuY0f7sKHr9qNZUEl64m2fvwmDk');
+my $name = shift;
+grep {$_ eq $name} keys %data;
+__bxU1sDtIh3+P1x0HuuY0f7sKHr9qNZUEl64m2fvwmDk
+
+meta::function('export', <<'__I4eRG7HtLDZhFgrlr0QDrQO5MRwJYGFlotQsWQIE/d8');
+# Exports data into a text file.
+#   export attr1 attr2 attr3 ... file.txt
+
+my $name = pop @_;
+my @attributes = @_;
+
+if (@attributes) {
+  my $file = join "\n", map {cat($_)} @attributes;
+  file::write ($name, $file);
+} else {
+  messages::error ("Not enough arguments");
+}
+__I4eRG7HtLDZhFgrlr0QDrQO5MRwJYGFlotQsWQIE/d8
+
+meta::function('grab', <<'__sXs1aeJVBERH6nWE7ZpWiIO5Cg7fSBWcoscDg1DHzD8');
+my ($filename, @attribute_names) = @_;
+associate("implementation::$_", `$filename cat $_`) for @attribute_names;
+__sXs1aeJVBERH6nWE7ZpWiIO5Cg7fSBWcoscDg1DHzD8
+
+meta::function('import', <<'__7f1Q36AcIJ8/OaaYPGUq10PPFTKnEF0CMxS56DRsjKk');
+my $name  = pop @_;
+my @files = @_;
+
+if (@files) {
+  my $files = join "", map {file::read ($_)} @files;
+  associate ($name, $files); 
+}
+else {
+  associate($name, join('', <STDIN>));
+}
+__7f1Q36AcIJ8/OaaYPGUq10PPFTKnEF0CMxS56DRsjKk
+
+meta::function('lock', <<'__pqf/HijyN91BWpnS+uWYip/mFhHhcd+M9/YdlYsvv9Y');
+my (undef, undef, $mode) = stat $0;
+chmod $mode & 0555, $0;
+__pqf/HijyN91BWpnS+uWYip/mFhHhcd+M9/YdlYsvv9Y
+
+meta::function('ls', <<'__OlQOgKhp6VUThx34wxmM3MFkwsHfR/c8dqvu07z059E');
+my $criteria = join '|', @_;
+my @lines = grep /$criteria/, sort keys %externalized_functions;
+my $length = 0;
+$length >= length($_) or $length = length($_) for @lines;
+
+my @new_lines = map($_ . ' ' x ($length + 2 - length($_)) . $externalized_functions{$_}, @lines);
+join("\n", sort @new_lines);
+__OlQOgKhp6VUThx34wxmM3MFkwsHfR/c8dqvu07z059E
+
+meta::function('ls-a', <<'__S5EydJRu+YIfcFmTMz1ZHX0cANJq32bU5JnYCe1tWdk');
+my $criteria = join '|', @_;
+my @lines    = grep(/$criteria/, sort keys %data);
+my $length   = 0;
+
+my %inverses;
+$inverses{$externalized_functions{$_}} = $_ for keys %externalized_functions;
+
+$length >= length($_) or $length = length($_) for @lines;
+my @new_lines = map($_ . ' ' x ($length + 2 - length($_)) . ($inverses{$_} || ''), @lines);
+join "\n", @new_lines;
+__S5EydJRu+YIfcFmTMz1ZHX0cANJq32bU5JnYCe1tWdk
+
+meta::function('make', <<'__8mAUcwqcvcEhgs6tEjHaIx3uF9QOC+9DAI7NmulvJ74');
+compile();
+view();
+clean();
+__8mAUcwqcvcEhgs6tEjHaIx3uF9QOC+9DAI7NmulvJ74
+
+meta::function('mv', <<'__ijyNZ8r34FVK0Ki9/Q0Irx5k9U0pZ+/frrdlu+qkEP4');
+my ($from, $to) = @_;
+messages::error("The '$from' attribute does not exist.") unless grep $from, keys %data;
+associate($to, retrieve($from));
+rm($from);
+__ijyNZ8r34FVK0Ki9/Q0Irx5k9U0pZ+/frrdlu+qkEP4
+
+meta::function('new', <<'__FQjehdFg7T3T2iHPMlGp6nAnrKAsQUIK5CXW02wNnos');
+clone(@_);
+__FQjehdFg7T3T2iHPMlGp6nAnrKAsQUIK5CXW02wNnos
+
+meta::function('perl', <<'__Ojd593Fa9fx1Yx2XuPzK6WTUyxO70Nbmlbl9YRodUWA');
+my $result = eval($_[0]);
+$@ ? $@ : $result;
+__Ojd593Fa9fx1Yx2XuPzK6WTUyxO70Nbmlbl9YRodUWA
+
+meta::function('pop-state', <<'__eqnCLsMapvq2sYSx82KCxh25zmff+JIXFMYUan2kGKM');
+%data = %{pop @{$transient{'states'}}} if @{$transient{'states'}};
+reload();
+__eqnCLsMapvq2sYSx82KCxh25zmff+JIXFMYUan2kGKM
+
+meta::function('pull', <<'__ZU6uOu7dBdjjoNdEL/U7yrjicOQR5OLFQAacjrKqSCg');
+my ($class_name) = @_;
+my @attributes = grep /^implementation::/, split /\n/, `$class_name ls-a`;
+
+for (@attributes) {
+  s/^\s+//;
+  s/\s+$//;
+  print STDERR "Adding $_\n";
+  associate(basename($_), `$class_name cat "$_"`);
+}
+__ZU6uOu7dBdjjoNdEL/U7yrjicOQR5OLFQAacjrKqSCg
+
+meta::function('push-state', <<'__ik0ofu7R8gHAKSmMjek79V+yfgdjdK5Jmtwf7h8SpJk');
+push @{$transient{'states'} = $transient{'states'} || []}, {%data};
+my $state_count = scalar @{$transient{'states'}};
+"There are now $state_count states on the stack.";
+__ik0ofu7R8gHAKSmMjek79V+yfgdjdK5Jmtwf7h8SpJk
+
+meta::function('reload', <<'__GwQjnnfuj0xQlervDJ9EVWzdmdz+XL3Gq0i9rdejvzM');
+execute($_) for (grep {! (/^internal::/ || /^bootstrap::/)} keys %data);
+__GwQjnnfuj0xQlervDJ9EVWzdmdz+XL3Gq0i9rdejvzM
+
+meta::function('rm', <<'__7BVECTVo/mcT5+edC70WPc6S1xCbzAeyUCfCjkKWlww');
+for my $to_be_deleted (@_) {
+  messages::warning("$to_be_deleted does not exist") unless grep {$_ eq $to_be_deleted} keys %data;
+}
+
+delete @data{@_};
+__7BVECTVo/mcT5+edC70WPc6S1xCbzAeyUCfCjkKWlww
+
+meta::function('save', <<'__uWXGnrQr+A7Cl0zcsDuiokbWAw1XdMdjeq9gDcTMJIw');
+my $serialized_data = serialize();
+my $final_state     = state();
+
+my (undef, $temporary_filename) = tempfile("$0." . 'X' x 32, OPEN => 0);
+file::write($temporary_filename, $serialized_data);
+chmod 0700, $temporary_filename;
+
+my $observed_state = `perl $temporary_filename state`;
+chomp $observed_state;
+if ($observed_state ne $final_state) {
+  messages::error("The state of this object ($final_state) is inconsistent with the state of $temporary_filename ($observed_state).\n" .
+                  "$0 has not been updated.");
+} else {
+  eval {file::write($0, $serialized_data)};
+  warn $@ if $@;
+  my $observed_self_state = `perl $0 state`;
+  chomp $observed_self_state;
+  unlink $temporary_filename if $observed_self_state eq $final_state;
+}
+__uWXGnrQr+A7Cl0zcsDuiokbWAw1XdMdjeq9gDcTMJIw
+
+meta::function('serialize', <<'__KGiI48MlyG6RAVW5QYRK8y97y8tx+jeAwPlY5eDtMTw');
+my @keys_without_internals = grep(!/^internal::/, sort keys %data);
+join "\n", $data{'bootstrap::initialization'},
+           (grep {$_} (map {serialize::single(@_)} grep(/^meta::/,  @keys_without_internals),
+                                                   grep(!/^meta::/, @keys_without_internals),
+                                                   grep(/^internal::/, sort keys %data))),
+           "__END__";
+__KGiI48MlyG6RAVW5QYRK8y97y8tx+jeAwPlY5eDtMTw
+
+meta::function('shell', <<'__mzNaDzdnJhpI/Va1/nY8LTN9BQtfr77CFKIeK2GdIC0');
+use Term::ReadLine;
+
+my $term = new Term::ReadLine "$0 shell";
+$term->ornaments(0);
+my $prompt = &{'name'}() . '$ ';
+my $OUT = $term->OUT || \*STDOUT;
+
+$term->Attribs->{attempted_completion_function} = \&complete;
+
+while (defined ($_ = $term->readline($prompt))) {
+  my $command_line = $_;
+  my @args = grep length, split /\s+|("[^"\\]*(?:\\.)?")/o;
+  my $function_name = shift @args;
+
+  return if $function_name eq 'exit';
+
+  s/^"(.*)"$/\1/o, s/\\\\"/"/go for @args;
+
+  if ($function_name) {
+    if ($externalized_functions{$function_name}) {
+      my $result = eval {&{$function_name}(@args)};
+      messages::warning($@) if $@;
+      chomp $result;
+      print $OUT $result, "\n" unless $@;
+    } else {
+      messages::warning("Command not found: $function_name");
+    }
+  }
+
+  for my $watch (@{$transient{'watch_list'}}) {
+    print $OUT eval($watch), "\n";
+    print $OUT "Error evaluating watched expression $watch: $@\n" if $@;
+  }
+
+  $prompt = &{'name'}() . '$ ';
+}
+__mzNaDzdnJhpI/Va1/nY8LTN9BQtfr77CFKIeK2GdIC0
+
+meta::function('size', <<'__lDGr6yVnDwcDWLkJH16MNukltjG2ypBSk/ktYb80h80');
+length(serialize());
+__lDGr6yVnDwcDWLkJH16MNukltjG2ypBSk/ktYb80h80
+
+meta::function('snapshot', <<'__qjqsCy4CTt88dIi7IWM+Varpb3GcHsYrFTxW7EwpLW0');
+my ($name) = @_;
+file::write(my $finalname = state_based_filename($name), serialize(), noclobber => 1);
+chmod 0700, $finalname;
+__qjqsCy4CTt88dIi7IWM+Varpb3GcHsYrFTxW7EwpLW0
+
+meta::function('state', <<'__1S8nzRSMoxJU/VEv2rx/NrAt1iRgXQ9ugxjUP3IFunI');
+sha256_base64 serialize();
+__1S8nzRSMoxJU/VEv2rx/NrAt1iRgXQ9ugxjUP3IFunI
+
+meta::function('unlock', <<'__08PohCY8fcNe+pWCO6ic6XOOKv48NkrxpNMmTOUIFdA');
+my (undef, undef, $mode) = stat $0;
+chmod $mode | 0200, $0;
+__08PohCY8fcNe+pWCO6ic6XOOKv48NkrxpNMmTOUIFdA
+
+meta::function('update-from', <<'__jJ2tfSk/Quz8/1PiYxIwQjBRt/hYg51iJhAdxcdaHkM');
+# Upgrade all attributes that aren't customized. In this case, we want everything except for configuration::, code::, and attribute::.
+return "That is a really bad idea." if $0 =~ /\.\/(.*)/ && $_[0] eq $1 || $_[0] eq $0;
+
+my @attributes = map {s/\s+.*//; $_} split(/\n/, qx|$_[0] ls-a|);
+
+terminal::message('info', 'Replicating state...');
+&{'push-state'}();
+terminal::message('info', 'Updating meta attributes...');
+for my $attribute (grep length && /^meta::/, @attributes) {
+  associate($attribute, join('', qx|$_[0] cat $attribute|));
+  reload();
+  print '.';
+}
+
+print "\n";
+terminal::message('info', 'Updating non-meta attributes...');
+for my $attribute (grep length && ! (/^configuration::/ || /^code::/ || /^attribute::/ || /^function::pop-state$/ ||
+                                     /^list::/ || /^issue::/ || /^data::/ || /^meta::datatypes/), @attributes) {
+  associate($attribute, join('', qx|$_[0] cat $attribute|));
+  reload();     # Necessary to activate new datatypes.
+  print '.';
+}
+
+print "\n";
+terminal::message('info', 'Reloading new configuration');
+reload();
+terminal::message('info', "Imported from $_[0]. Run pop-state to undo this change.");
+__jJ2tfSk/Quz8/1PiYxIwQjBRt/hYg51iJhAdxcdaHkM
+
+meta::function('usage', <<'__7ReV+2xSkKaDnXAdgszTEQyeJETOBChyE/THZJIifMs');
+<<"EOD" . ls ();
+Usage: $0 [options] action [arguments]
+Defined actions (and the attribute that defines them):
+EOD
+__7ReV+2xSkKaDnXAdgszTEQyeJETOBChyE/THZJIifMs
+
+meta::function('view', <<'__wEtlK5H0ttR24UvcFUsgg5Es1V/VbjMJlU+SKiO2jKs');
+my $pdf_reader      = &{'pdf-reader'}();
+my $pdf_output_file = &{'pdf-output-file'}();
+chomp $pdf_reader;
+system("$pdf_reader '$pdf_output_file'");
+__wEtlK5H0ttR24UvcFUsgg5Es1V/VbjMJlU+SKiO2jKs
+
+meta::function('vim', <<'__1EcCMR8Tks8HBoOg+zAKJ4LlrRIY8nvLs4M1VTr2Zec');
+# Installs VIM highlighters.
+file::write("$ENV{'HOME'}/.vim/syntax/$_.vim", retrieve("vim_highlighter::$_")) for map {s/^vim_highlighter:://o; $_} grep /^vim_highlighter::/, sort keys %data;
+__1EcCMR8Tks8HBoOg+zAKJ4LlrRIY8nvLs4M1VTr2Zec
+
+meta::internal_function('associate', <<'__D8BKmEFp/adiPPqPnXyMOzlsBMCmuZi62UpJWdoFg/0');
+my ($name, $value, %options) = @_;
+my $namespace = namespace($name);
+messages::error("Namespace $namespace does not exist") unless grep {$_ eq $namespace} @data_types;
+$data{$name} = $value;
+execute($name) if $options{'execute'};
+__D8BKmEFp/adiPPqPnXyMOzlsBMCmuZi62UpJWdoFg/0
+
+meta::internal_function('basename', <<'__T4JEqOUYjMzssdVwV/rdgAhvr0Vz9TQUo0noTdeBLxw');
+my ($name) = @_;
+$name =~ s/^[^:]*:://;
+$name;
+__T4JEqOUYjMzssdVwV/rdgAhvr0Vz9TQUo0noTdeBLxw
+
+meta::internal_function('complete', <<'__lhlD80z2kvEUEeHPqLFw6JE8xUdXr6J5Q1gXHg4beHg');
+my @functions  = sort keys %externalized_functions;
+my @attributes = sort keys %data;
+
+sub match {
+  my ($text, @options) = @_;
+  my @matches = sort grep /^$text/, @options;
+
+  if    (@matches == 0) {return undef;}
+  elsif (@matches == 1) {return $matches [0];}
+  elsif (@matches >  1) {return ((longest ($matches [0], $matches [@matches - 1])), @matches);}
+}
+
+sub longest {
+  my ($s1, $s2) = @_; 
+  return substr ($s1, 0, length $1) if ($s1 ^ $s2) =~ /^(\0*)/;
+  return ''; 
+}
+
+# This is another way to implement autocompletion.
+#
+# my $attribs = $term->Attribs;
+# $attribs->{completion_entry_function} = $attribs->{list_completion_function};
+# $attribs->{completion_word} = [sort keys %data, sort keys %externalized_functions];
+
+my ($text, $line) = @_;
+if ($line =~ / /) {
+  # Start matching attribute names.
+  match ($text, @attributes);
+} else {
+  # Start of line, so it's a function.
+  match ($text, @functions);
+}
+__lhlD80z2kvEUEeHPqLFw6JE8xUdXr6J5Q1gXHg4beHg
+
+meta::internal_function('execute', <<'__Ge94WTpmLuqsMDappj5G/G2BKILAE0GjeCqAeHLW6fQ');
+my ($name, %options) = @_;
+my $namespace = namespace($name);
+eval {&{"meta::$namespace"}(basename($name), retrieve($name))};
+warn $@ if $@ && $options{'carp'};
+__Ge94WTpmLuqsMDappj5G/G2BKILAE0GjeCqAeHLW6fQ
+
+meta::internal_function('file::read', <<'__ZxBqZsMZZRuLMQp8Sy//ZsoAvriDebjYLGAX7p7AxXg');
+my $name = shift;
+open my($handle), "<", $name;
+my $result = join "", <$handle>;
+close $handle;
+$result;
+__ZxBqZsMZZRuLMQp8Sy//ZsoAvriDebjYLGAX7p7AxXg
+
+meta::internal_function('file::write', <<'__+NhpMabvNL+hHZaTZwBoFx2IFa79cjOZwGxEXX+xG0o');
+my ($name, $contents, %options) = @_;
+die "Choosing not to overwrite file $name" if $options{'noclobber'} && -f $name;
+open my($handle), ">", $name or die "Can't open $name for writing";
+print $handle $contents;
+close $handle;
+__+NhpMabvNL+hHZaTZwBoFx2IFa79cjOZwGxEXX+xG0o
+
+meta::internal_function('invoke_editor_on', <<'__97Lgs5+qfyAu92Vv5GCVVSYgUgFhOKYkVYXlbWoUs6U');
+my ($data, %options) = @_;
+my $content_hash     = sha256_base64($data);
+my $editor           = $options{'editor'} || $ENV{'VISUAL'} || $ENV{'EDITOR'} ||
+                       messages::error('Either the $VISUAL or $EDITOR environment variable should be set to a valid editor.');
+my $options          = $options{'options'} || $ENV{'VISUAL_OPTS'} || $ENV{'EDITOR_OPTS'} || '';
+my $extension        = $options{'extension'} || '';
+
+my (undef, $filename) = tempfile("$0." . ("X" x 32), OPEN => 0);
+$filename .= $extension;
+
+file::write($filename, $data);
+system("$editor $options \"$filename\"");
+
+my $result = file::read($filename);
+unlink $filename;
+$result;
+__97Lgs5+qfyAu92Vv5GCVVSYgUgFhOKYkVYXlbWoUs6U
+
+meta::internal_function('messages::error', <<'__200qXouilOAQNa4NkmIj6l+Rvb49Jpy8yxvIX29NcK4');
+my ($message) = @_;
+die "$message\n";
+__200qXouilOAQNa4NkmIj6l+Rvb49Jpy8yxvIX29NcK4
+
+meta::internal_function('messages::warning', <<'__DeU/1Klulk/y4fO+wtKt+liOmUKwCEYKM8BvtlXYXBc');
+my ($message) = @_;
+print "$message\n";
+__DeU/1Klulk/y4fO+wtKt+liOmUKwCEYKM8BvtlXYXBc
+
+meta::internal_function('namespace', <<'__D7UfKyyYZ1slZZyaS28hIt8a68jkI3ELBaddROXOHug');
+my ($name) = @_;
+$name =~ s/::.*$//;
+$name;
+__D7UfKyyYZ1slZZyaS28hIt8a68jkI3ELBaddROXOHug
+
+meta::internal_function('retrieve', <<'__Erqqkp11FEHKsitr0DEJZ6OCGDYAs+U6BSu4UvLvsFM');
+@data{@_};
+__Erqqkp11FEHKsitr0DEJZ6OCGDYAs+U6BSu4UvLvsFM
+
+meta::internal_function('serialize::single', <<'__lDBHaXpbrfER2envI2Ipy77IcdjUnlZou+rggaxsAWE');
+my $name               = shift || $_;
+my $contents           = $data{$name};
+my $delimiter          = "__" . sha256_base64 $contents;
+my $meta_function_name = "meta::" . namespace($name);
+my $invocation_name    = basename $name;
+"$meta_function_name('$invocation_name', <<'$delimiter');\n$contents\n$delimiter\n";
+__lDBHaXpbrfER2envI2Ipy77IcdjUnlZou+rggaxsAWE
+
+meta::internal_function('state_based_filename', <<'__zNSrihAkMKJG5spRYgcFdoNArFKig1u12gIp6gJ8pZw');
+my ($name) = @_;
+my $noise  = $name || state();
+$noise =~ s/\//-/g;
+"$0.$noise";
+__zNSrihAkMKJG5spRYgcFdoNArFKig1u12gIp6gJ8pZw
+
+meta::java_section('java-introduction', <<'__A3KF4Pr3gD/4XG4sMrPH+Ak7OpswEl/WQAmdOK9Isp8');
+- Introduction to Java Literate Coding
+  Literate coding allows you to write \TeX{} primarily, but insert Java code snippets where appropriate.\footnote{Take a look at {\tt java\_section::java-introduction} to see the how to set
+  the language and options for code sections.} For example:
+
+  :: java class=test
+  public class test {
+    public static void main (String[] args) {
+      System.out.println ("This is a test class");
+    }
+  }
+  :.
+
+  :: java class=test package=com.spencertipping
+  package com.spencertipping;
+  public class test {
+    public static void main (String[] args) {
+      System.out.println ("This is in package com.spencertipping.");
+    }
+  }
+  :.
+
+  Compiling the system is also simple:
+
+  ::
+  $ ./my-project compile
+  :.
+
+  This generates all of the Java source files in a directory, usually {\tt /tmp/src/}. The output directory can be changed like this:
+
+  ::
+  $ ./my-project source-directory = src/
+  :.
+__A3KF4Pr3gD/4XG4sMrPH+Ak7OpswEl/WQAmdOK9Isp8
+
+meta::library('terminal', <<'__pvD00lNNeQAXRGZFRNjR0bf9b/Z/rZgMgNL5zN4ZsQA');
+# Functions for nice-looking terminal output.
+
+package terminal;
+
+my %color_conversions = (black  => "0;0",
+                         red    => "1;31",
+                         yellow => "1;33",
+                         green  => "1;32",
+                         blue   => "1;34",
+                         purple => "1;35",
+                         cyan   => "1;36");
+my $longest_prefix = 0;
+my %default_colors = ();
+
+sub color {
+  $default_colors{$_[0]} = $_[1];
+  $longest_prefix = $longest_prefix < length($_[0]) ? length($_[0]) : $longest_prefix;
+}
+
+color    'info',  'green';
+color  'status',  'green';
+color   'error',    'red';
+color 'warning', 'yellow';
+
+sub message {
+  my ($prefix, $message) = @_;
+  my $color = $color_conversions{$default_colors{$prefix}};
+  my $padding = ' ' x ($longest_prefix - length $prefix);
+  print STDERR "${padding}[\033[${color}m$prefix\033[0;0m] $message\n";
+}
+__pvD00lNNeQAXRGZFRNjR0bf9b/Z/rZgMgNL5zN4ZsQA
+
+meta::line_filter('convert_header_info', <<'__1jqqbjBcdOqh/3nTKZSDbW1AgEo4kg0dQ5HdRAgxyzE');
+my ($line) = @_;
+
+$line =~ s/^= (.*)$/\\title{$1}/;
+$line =~ s/^a (.*)$/\\author{$1}/;
+$line =~ s/^d (.*)$/\\date{$1}/;
+
+my $document_header = '\begin{document}\maketitle';
+$document_header .= '\tableofcontents' if &{'table-of-contents'}();
+
+$line =~ s/^begin$/$document_header/;
+
+$line;
+__1jqqbjBcdOqh/3nTKZSDbW1AgEo4kg0dQ5HdRAgxyzE
+
+meta::line_filter('convert_itemized_environments', <<'__crKVW6OfRA2nN2SGPWQ/DAD9NPUws+boS8dK4cf3X2I');
+my ($line) = @_;
+
+$line =~ s/^\s*\+ /\\item /;
+$line =~ s/^\s*\+\[([^\]]*)\] /\\item[\1] /;
+
+$line =~ s/^\s*e\[$/\\begin{enumerate}/;
+$line =~ s/^\s*i\[$/\\begin{itemize}/;
+$line =~ s/^\s*d\[$/\\begin{description}/;
+
+$line =~ s/^\s*a\[$/\\begin{align*}/;
+
+$line =~ s/^\s*\]e$/\\end{enumerate}/;
+$line =~ s/^\s*\]i$/\\end{itemize}/;
+$line =~ s/^\s*\]d$/\\end{description}/;
+
+$line =~ s/^\s*\]a$/\\end{align*}/;
+
+$line;
+__crKVW6OfRA2nN2SGPWQ/DAD9NPUws+boS8dK4cf3X2I
+
+meta::line_filter('convert_sections', <<'__2dvR+HcKtutFCWe6cEFSERoj36PbA6u91tQcJgcwJWk');
+my ($line) = @_;
+
+my %indentation_levels = (
+  0 => '\section',
+  2 => '\subsection',
+  4 => '\subsubsection',
+  6 => '\paragraph',
+  8 => '\subparagraph');
+
+if ($line =~ /^(\s*)- (.*)$/) {
+  my $section = $indentation_levels{length($1)} || die "Invalid indentation level:\n$_";
+  my $section_name = $2;
+  my $label_name   = lc $section_name;
+
+  $label_name =~ s/[^A-Za-z0-9.]/-/g;
+
+  "${section} {$section_name} \\label{sec:$label_name}";
+} else {
+  $line;
+}
+__2dvR+HcKtutFCWe6cEFSERoj36PbA6u91tQcJgcwJWk
+
+meta::unlit_converter('create_sections', <<'__hMABUTlrgmVTt4JFwi0HvAb2ehkYaGLJ25qslKDQurE');
+my ($document) = @_;
+1 while $document =~ s/^\s*%section\(([^)]+)\)\s*$/\n$data{$1}\n/omg;
+$document;
+__hMABUTlrgmVTt4JFwi0HvAb2ehkYaGLJ25qslKDQurE
+
+meta::unlit_converter('main', <<'__3D082OWBmT2cWw4D6ktyDGp1MHknawaTDW2B0gvZPyM');
+my ($document) = @_;
+
+my $sections_already_encountered = 0;
+my $inside_code_block            = 0;
+my $code_block_indentation       = 0;
+my $code_section_name            = '';
+my $result                       = '';
+
+for (split /\n/, $document) {
+  # Handle code blocks.
+  if (/^(\s*):\.$/) {
+    $inside_code_block = $code_block_indentation = 0;
+
+    for my $filter_name (grep /^code_filter::/, sort keys %data) {
+      $_ = &$filter_name($_, name => $code_section_name, indentation => $code_block_indentation, end => 1);
+    }
+  }
+
+  if ($inside_code_block) {
+    my $spaces_to_delete = ' ' x $code_block_indentation;
+    s/^$spaces_to_delete//;
+    for my $filter_name (grep /^code_filter::/, sort keys %data) {
+      $_ = &$filter_name($_, name => $code_section_name, indentation => $code_block_indentation);
+    }
+  } else {
+    for my $filter_name (grep /^line_filter::/, sort keys %data) {
+      $_ = &$filter_name($_);
+    }
+  }
+
+  if (/^(\s*)::(\s.*)?$/) {
+    $inside_code_block      = 1;
+    $code_block_indentation = length($1);
+    $code_section_name      = $2;
+
+    for my $filter_name (grep /^code_filter::/, sort keys %data) {
+      $_ = &$filter_name($_, name => $code_section_name, indentation => $code_block_indentation, begin => 1);
+    }
+  }
+
+  $result .= "$_\n";
+}
+
+$result;
+__3D082OWBmT2cWw4D6ktyDGp1MHknawaTDW2B0gvZPyM
+
+meta::unlit_converter('zz_append_footer', <<'__xZrf+gAwEiK7btRcm+mwC/qtHsXp2FQ/Z8ZCwMvSw4Q');
+my ($document) = @_;
+"$document\n\\end{document}";
+__xZrf+gAwEiK7btRcm+mwC/qtHsXp2FQ/Z8ZCwMvSw4Q
+
+meta::unlit_converter('zz_prepend_header', <<'__4YCmTeTBS/MGOkeIFkQRlLujLJ1g/qS0/0iCeanWkkw');
+my ($document) = @_;
+header() . "\n$document";
+__4YCmTeTBS/MGOkeIFkQRlLujLJ1g/qS0/0iCeanWkkw
+
+meta::vim_highlighter('cltex', <<'__i99D+bM2oHb2kJ9JHMYOpio7eDlvgAvVVrOhkUTyaxM');
+" Cleaner TeX
+" Maintainer: Spencer Tipping <spencer@spencertipping.com>
+" Language:   Cleaner TeX (a variant of LaTeX)
+
+if version < 600
+  syntax clear
+elseif exists("b:current_syntax")
+  finish
+endif
+
+syn match  cltTitle   /^= .*$/
+syn match  cltAuthor  /^a .*$/
+syn match  cltDate    /^d .*$/
+syn match  cltBegin   /^begin$/
+syn match  cltSection /^\s*- .*$/
+syn region cltVerbatim start=/^\s*::$/ end=/^\s*:\.$/
+
+syn match  cltEnumeratedThing /^\s*[eid]\[/
+syn match  cltEnumeratedThing /^\s*\][eid]/
+syn match  cltItem            /^\s*+\s/
+syn match  cltQuantifiedItem  /^\s*+\[[^\]]*\]\s/
+
+runtime! syntax/tex.vim
+
+syn match  cltInclude /^\s*%section([^)]\+)$/
+
+hi link cltBegin    Keyword
+hi link cltTitle    Identifier
+hi link cltAuthor   Identifier
+hi link cltDate     Identifier
+
+hi link cltEnumeratedThing Special
+hi link cltItem            Special
+hi link cltQuantifiedItem  Special
+hi link cltInclude         Special
+
+hi link cltSection  Type
+
+hi link cltVerbatim String
+
+let b:current_syntax = "cltex"
+__i99D+bM2oHb2kJ9JHMYOpio7eDlvgAvVVrOhkUTyaxM
+
+meta::vim_highlighter('cpptex', <<'__N6YI1WK23oeIYylZ/zbeqw7wUunykPr0tAAhFL+VojQ');
+" TeX with C++
+" Maintainer: Spencer Tipping <spencer@spencertipping.com>
+" Language:   TeX with C++ in it
+
+if version < 600
+  syntax clear
+elseif exists("b:current_syntax")
+  finish
+endif
+
+syn region cpptexComment start=/\%^\|^\s*:.$/ end=/\%$\|^\s*::.*\<cpp\>.*$/ contains=cpptexSection
+syn match  cpptexSection /^\s*- .*$/           contained
+
+runtime! syntax/cpp.vim
+
+hi link cpptexSection Special
+hi link cpptexComment Comment
+
+let b:current_syntax = "cpptex"
+__N6YI1WK23oeIYylZ/zbeqw7wUunykPr0tAAhFL+VojQ
+
+meta::vim_highlighter('javatex', <<'__nEheNk5KhfU1tIJUV7PcB9MfRb0bIbRXyu7BN/Ws6bU');
+" TeX with Java
+" Maintainer: Spencer Tipping <spencer@spencertipping.com>
+" Language:   TeX with Java in it
+
+if version < 600
+  syntax clear
+elseif exists("b:current_syntax")
+  finish
+endif
+
+syn region javatexComment start=/\%^\|^\s*:.$/ end=/\%$\|^\s*::.*\<java\>.*$/ contains=javatexSection
+syn match  javatexSection /^\s*- .*$/           contained
+
+runtime! syntax/java.vim
+
+hi link javatexSection Special
+hi link javatexComment Comment
+
+let b:current_syntax = "javatex"
+__nEheNk5KhfU1tIJUV7PcB9MfRb0bIbRXyu7BN/Ws6bU
+
+meta::internal('runtime', <<'__YPmIzwZkTg8URmPfjiwGRG4VDUF2ZCJqTEz+gjETYLQ');
+my $initial_state = sha256_base64 serialize();
+
+push @script_args, shift @ARGV while @ARGV && $ARGV[0] =~ /^-/;
+
+my $default_action = retrieve('data::default-action');
+chomp $default_action;
+my $function_name = shift(@ARGV) || $default_action || 'usage';
+$function_name = 'usage' unless $externalized_functions{$function_name};
+my $result = &{$function_name}(@ARGV);
+chomp $result;
+print "$result\n" if $result;
+
+END {
+  my $serialized_data = serialize();
+  my $final_state     = sha256_base64 $serialized_data;
+  save() unless $initial_state eq $final_state;
+}
+
+__YPmIzwZkTg8URmPfjiwGRG4VDUF2ZCJqTEz+gjETYLQ
+
+__END__
