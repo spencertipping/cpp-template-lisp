@@ -359,7 +359,7 @@ meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXb
   :.
 __dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI
 
-meta::cpp_section('introduction', <<'__DRP0kMUVbF2TtLI6WGx4GYs5OKUVwC8ZuI2PIzXndPY');
+meta::cpp_section('introduction', <<'__xSI+zV86MByc7KUskxZjW3vDO+2TQVfdxY89kcIA/y8');
 - Introduction to Template Patterns
   \label{sec:introduction}
   Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
@@ -468,8 +468,8 @@ meta::cpp_section('introduction', <<'__DRP0kMUVbF2TtLI6WGx4GYs5OKUVwC8ZuI2PIzXnd
     }
     :.
 
-    In this example, \verb|foo2| has a call slot \verb|apply| that ultimately provides the value. So, for example, \verb|foo2<x>::apply<y>::type| is equivalent to the more concise
-    \verb|foo2 x y| in Haskell, or \verb|((foo2 x) y)| in Scheme.
+    In this example, \verb|k| has a call slot \verb|apply| that ultimately provides the value. So, for example, \verb|k<x>::apply<y>::type| is equivalent to the more concise \verb|k x y| in
+    Haskell, or \verb|((k x) y)| in Scheme.
 
     At this point it should be clear that nothing is standardized here. Top-level functions are invoked directly, whereas returned functions use \verb|::apply<x>|. Type results from template
     invocations are accessed as \verb|::type|. One way to go about fixing it is to make a rule that a function gets encoded a bit less directly:
@@ -572,15 +572,20 @@ meta::cpp_section('introduction', <<'__DRP0kMUVbF2TtLI6WGx4GYs5OKUVwC8ZuI2PIzXnd
     }
     :.
 
-    The parameter definition \verb|template<class arg1, class arg2> class f| is equivalent to the Haskell type signature \verb|(a, b) -> c|; none of the individual types are specified, but the
-    template must be invoked on two parameters or not invoked at all. The other thing of note is that you can arbitrarily refine the left-hand side; for example:
+    The parameter definition \verb|<template<class arg1, class arg2> class f>| is equivalent to the Haskell type signature \verb|f :: (a, b) -> c|; none of the individual types are specified,
+    but the template must be invoked on two parameters or not invoked at all.\footnote{Note that at this point I'm not referring to invocation using the {\tt ::apply} convention established
+    earlier. This invocation is just regular template expansion.} The other thing of note is that you can arbitrarily refine the left-hand side; for example:
     
     ::
-    template<template<template<class x> f, template<class y> class g> class compose>
+    template<template<template<class x> class f,
+                      template<class y> class g> class compose>
     struct ...
     :.
 
     This is equivalent to \verb|((a -> b), (c -> d)) -> e|. As far as I know there is no way to specify the return type of a function using template syntax.
+
+    I'm not using template types in this project for a couple of reasons. First, declaring formals uses names (I'm actually not sure whether those names are considered reserved by C++, but I
+    assume so). Second, it isn't possible to encode slot types, and all invocation in the lambda-calculus encoding is done with the \verb|::apply| slot.
 
   - Makefile for examples
     This makefile will build all of the examples listed in \Ref{section}{sec:introduction}. It is available in the source distribution as \verb|src/makefile|, and should be run from inside
@@ -611,20 +616,75 @@ meta::cpp_section('introduction', <<'__DRP0kMUVbF2TtLI6WGx4GYs5OKUVwC8ZuI2PIzXnd
     %: %.cc
     	$(CC) $(CC_OPTS) $< -o $@
     :.
-__DRP0kMUVbF2TtLI6WGx4GYs5OKUVwC8ZuI2PIzXndPY
+__xSI+zV86MByc7KUskxZjW3vDO+2TQVfdxY89kcIA/y8
+
+meta::cpp_section('preprocessor', <<'__LAsxsh1aSKtu3M+9TT2V3BSOq+7li3sHpeAVb1TsLQ4');
+- Preprocessor Definitions
+  The goal of this section is to define a small domain-specific language for building functions and defining variables. The basic operations are these:
+
+  e[
+    + Defining a global constant
+    + Defining a function
+    + Defining a closure
+    + Defining a local variable
+    + Returning a value from a function
+    + Applying a function to an expression \label{itm:apply-function-to-expression}
+  ]e
+
+  Each of these operations has a roughly standard form.\footnote{There are two for \Ref{item}{itm:apply-function-to-expression}; one form is used outside of a function body and the other is
+  used inside. The difference has to do with disambiguating template expansions and is covered in \Ref{section}{sec:disambiguating-template-expansions}.} The definition of a shorthand for each
+  is given in the following subsections.
+
+  - Preprocessor limitations
+    One notable limitation of the C preprocessor when working with templates is that it doesn't treat \verb|<| and \verb|>| as nested parentheticals.\footnote{It wouldn't be possible for it to
+    do the right thing here anyway, since the preprocessor sees code before types have been defined. However, template punctuation was an unfortunate choice considering its ambiguity with
+    relational operators, and the fact that relational operators are always ungrouped while template parameter delimiters are always grouped.} This has the unfortunate effect of splitting on
+    commas that separate template parameters, e.g.:
+
+    ::
+    #define f(x) ...
+
+    template<class x, class y>
+    struct foo {...};
+
+    f(foo<bar, bif>);   // Error here; too many arguments
+    :.
+
+    In value-space you can deal with this by explicitly parenthesizing expressions, but parentheses aren't a transparent construct in type-space. The way I'm getting around this for now is to
+    make macros variadic and always put any template invocations at the end:
+
+    ::
+    #define f(x...) typedef x bar;
+    :.
+
+    This will preserve the commas in the original expression.
+
+  - Defining a global constant
+    This is the simplest operation. It involves creating a \verb|typedef| without a scoping label, for example \verb|typedef foo bar|:
+
+    :: cpp name=preprocessor/global.h
+    #define global(name, value...) typedef value name;
+    :.
+
+    Note that the order of arguments is reversed from a \verb|typedef|. This is both necessary and convenient; it is convenient because you generally define variables by specifying the name
+    first, and necessary because the variadic parameter should come last.
+
+  - Defining a function
+    This requires 
+__LAsxsh1aSKtu3M+9TT2V3BSOq+7li3sHpeAVb1TsLQ4
 
 meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
 __zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc
 
-meta::data('document', <<'__OPVkAwgTq0fP89VM9AJc9ZQGEf/ajSNVY7YqmNsYViw');
+meta::data('document', <<'__baPpCyrzWlXFIa5QkjvWtqTQPxtJuRsoIXfqyXZg6ls');
 = C++ Template Lisp Interpreter
 a Spencer Tipping
 begin
 
 %section(cpp_section::introduction)
-%section(cpp_section::lists)
-__OPVkAwgTq0fP89VM9AJc9ZQGEf/ajSNVY7YqmNsYViw
+%section(cpp_section::preprocessor)
+__baPpCyrzWlXFIa5QkjvWtqTQPxtJuRsoIXfqyXZg6ls
 
 meta::data('header', <<'__9t0Dc6kncjMJSRq7d4I6GqZei2O7Z0ncCxs4LA8IKis');
 \documentclass{article}
@@ -671,9 +731,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__wyoieRij0nSd8jStK9BgmC/te0J6/FOh14xjEsi3vXo');
-/tmp/interpreter.L6MoEXhZJX-jRCbx+Ow6QsTZCFozJTyLSWkAMh34heU/document.pdf
-__wyoieRij0nSd8jStK9BgmC/te0J6/FOh14xjEsi3vXo
+meta::data('pdf-output-file', <<'__nRG40oiYKvnv/O2WCFANLDNX+8/qXYnDCjje/jqpBbI');
+/tmp/interpreter.S9WwpW4+pnBAJV7E5tVstjltd+unE9Dgg31aoLjTJsY/document.pdf
+__nRG40oiYKvnv/O2WCFANLDNX+8/qXYnDCjje/jqpBbI
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
