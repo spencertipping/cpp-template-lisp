@@ -3,7 +3,7 @@ WORKING = first-order-functions higher-order-functions \
 ERRORS  = indirect-functions-broken
 
 CC      = g++
-CC_OPTS = -g -Wall
+CC_OPTS = -g -Wall -std=gnu++0x
 
 all: $(WORKING)
 broken: $(ERRORS)

@@ -359,7 +359,7 @@ meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXb
   :.
 __dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI
 
-meta::cpp_section('introduction', <<'__xSI+zV86MByc7KUskxZjW3vDO+2TQVfdxY89kcIA/y8');
+meta::cpp_section('introduction', <<'__8jm78f4224NkyWuQQRowqvYIeDeaGygAApEQespBF3Y');
 - Introduction to Template Patterns
   \label{sec:introduction}
   Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
@@ -597,7 +597,7 @@ meta::cpp_section('introduction', <<'__xSI+zV86MByc7KUskxZjW3vDO+2TQVfdxY89kcIA/
     ERRORS  = indirect-functions-broken
 
     CC      = g++
-    CC_OPTS = -g -Wall
+    CC_OPTS = -g -Wall -std=gnu++0x
 
     all: $(WORKING)
     broken: $(ERRORS)
@@ -616,7 +616,7 @@ meta::cpp_section('introduction', <<'__xSI+zV86MByc7KUskxZjW3vDO+2TQVfdxY89kcIA/
     %: %.cc
     	$(CC) $(CC_OPTS) $< -o $@
     :.
-__xSI+zV86MByc7KUskxZjW3vDO+2TQVfdxY89kcIA/y8
+__8jm78f4224NkyWuQQRowqvYIeDeaGygAApEQespBF3Y
 
 meta::cpp_section('preprocessor', <<'__LAsxsh1aSKtu3M+9TT2V3BSOq+7li3sHpeAVb1TsLQ4');
 - Preprocessor Definitions
