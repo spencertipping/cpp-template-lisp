@@ -765,7 +765,7 @@ meta::cpp_section('resources', <<'__+yj6tDGgZpVr6j1d9SrHOpH+w1bU3UJwe3Ttop1g+68'
     :.
 __+yj6tDGgZpVr6j1d9SrHOpH+w1bU3UJwe3Ttop1g+68
 
-meta::cpp_section('value-space', <<'__V8jO4ElphUpKB6r8H2UKNRTWYXJDKBCvROd5AL08lSc');
+meta::cpp_section('value-space', <<'__ZuIeceXSfV2xNH4kORIRr/KgdKVHAnTb49BevXKTc/s');
 - Metaprogramming in Value Space
   Without using any particular encoding, this section provides a few examples of template metaprogramming in action. Each example has been factored down by preprocessor macros to show the
   structure of the code. Also, these examples are not necessarily representative of best practices, nor do they scale well.
@@ -896,6 +896,8 @@ meta::cpp_section('value-space', <<'__V8jO4ElphUpKB6r8H2UKNRTWYXJDKBCvROd5AL08lS
     This is a simple model of a data structure in value-space. For scalability it would be better to use types for the head and tail, but for simplicity the example is restricted to using
     values.
 
+    The \verb|q| function in this example works around a limitation of the preprocessor. \Ref{Section}{sec:preprocessor-limitations} covers this in more detail.
+
     :: cpp name=examples/linked-list.cc
     #include <iostream>
 
@@ -1013,7 +1015,7 @@ meta::cpp_section('value-space', <<'__V8jO4ElphUpKB6r8H2UKNRTWYXJDKBCvROd5AL08lS
                    should_be_seven::type::value << std::endl;
     }
     :.
-__V8jO4ElphUpKB6r8H2UKNRTWYXJDKBCvROd5AL08lSc
+__ZuIeceXSfV2xNH4kORIRr/KgdKVHAnTb49BevXKTc/s
 
 meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
@@ -1078,9 +1080,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__42ntMiwylWPD0Wu0oDPMkkab6WF/gqenhbvVeO16Ctc');
-/tmp/interpreter.uhG-3n8rgOfg2SoxdpHpBuPW5ljxnr0SlQRiwqYiWO0/document.pdf
-__42ntMiwylWPD0Wu0oDPMkkab6WF/gqenhbvVeO16Ctc
+meta::data('pdf-output-file', <<'__NXcGNV8I5PJcSjKb7Rr12DpybFXUoanfzYD+vIFNkBs');
+/tmp/interpreter.jXL8eovflzdlnPhZapz4H86EjiCs+ZhQJDNdyhBZRIk/document.pdf
+__NXcGNV8I5PJcSjKb7Rr12DpybFXUoanfzYD+vIFNkBs
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
