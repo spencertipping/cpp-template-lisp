@@ -346,6 +346,115 @@ unless ($settings{'name'}) {
 return $line;
 __AON9bxWzZOMpERGSJVrit8dkijYb5Re8IIg2PEC5i1s
 
+meta::cpp_section('basic-examples', <<'__iBA5dPZPC4ZJ/5FRaJeya3BMc7J+6djHjuQi4TLESAU');
+- Basic Metaprogramming Examples
+  Without using any particular encoding, this section provides a few examples of template metaprogramming in action. Each example has been factored down by preprocessor macros to show the
+  structure of the code. Also, these examples are not necessarily representative of best practices, nor do they scale well.
+
+  - Fibonacci numbers (explicit specialization)
+    \label{sec:fibonacci-explicit}
+    This is some metaprogramming in value-space. Constants are evaluated and folded at compile-time, so the \verb|expression| term below can be used to perform arithmetic evaluation. This
+    example defines one general form of \verb|fibonacci|, and two specific forms for an inductive process with two base cases. It also shows the lack of generality of piecewise definitions;
+    while it is possible to specify a template for given values, implementing the classic compact definition of the function:
+
+    $$ f(n) = \begin{cases} f(n-1) + f(n-2) & n \ge 2 \\
+                            n               & n <   2 \end{cases} $$
+
+    \noindent is not possible through specialization without enumerating every value of $n$ below or above 2. In this section we implement a more straightforward definition:
+
+    $$ f(n) = \begin{cases} 0               & n = 0 \\
+                            1               & n = 1 \\
+                            f(n-1) + f(n-2) & \text{otherwise} \end{cases} $$
+
+    The compact definition is possible, however. The key is to encode that condition separately and specialize on a boolean parameter. That is implemented in
+    \Ref{section}{sec:fibonacci-piecewise}.
+
+    :: cpp name=examples/fibonacci.cc
+    #include <iostream>
+
+    #define letrec(name, params, defaults, expression) \
+      template params \
+      struct name defaults { \
+        enum { value = expression }; \
+      };
+
+    #define call(name, params...) (name<params>::value)
+
+    letrec(fibonacci, <int n>, , call(fibonacci, n - 1) + call(fibonacci, n - 2))
+    letrec(fibonacci, <>, <0>, 0)
+    letrec(fibonacci, <>, <1>, 1)
+
+    int main () {
+      std::cout << "fibonacci<10>::value = " << fibonacci<10>::value << std::endl;
+    }
+    :.
+
+  - Fibonacci numbers (piecewise definition)
+    \label{sec:fibonacci-piecewise}
+    As mentioned in \Ref{section}{sec:fibonacci-explicit}, it is possible to encode the Fibonacci function using a general conditional instead of explicitly specializing the two base values of
+    0 and 1. This example doesn't motivate its full utility (better would be a densely piecewise function such as the absolute value), but you can easily extrapolate from the design pattern.
+
+    The first step is to isolate the cases. For the piecewise Fibonacci function:
+
+    $$ f(n) = \begin{cases} n               & n < 2 \\
+                            f(n-1) + f(n-2) & n \ge 2 \end{cases} $$
+
+    In this case a boolean contains enough information to encode the case. I'll use $n < 2$ as the predicate, so a value of \verb|true| should result in $n$ while a value of \verb|false|
+    should result in $f(n-1) + f(n-2)$.
+
+    Here is the obvious way to go about it, though it doesn't work because of mutual dependencies in the definitions:
+
+    :: cpp name=examples/fibonacci-piecewise-broken.cc
+    template <bool n_lt_2, int n>
+    struct fibonacci_case {
+      enum { value = fibonacci<n - 1>::value + fibonacci<n - 2>::value };
+    };
+
+    template <int n>
+    struct fibonacci_case <true, n> {
+      enum { value = n };
+    };
+
+    template <int n>
+    struct fibonacci {
+      enum { value = fibonacci_case<(n < 2), n>::value };
+    };
+    :.
+
+    C++ needs to know about template types before you hit them. Because there isn't a way to forward-define templates, we have to get a little bit more creative:
+
+    :: cpp name=examples/fibonacci-piecewise.cc
+    #include <iostream>
+
+    template <class f, bool n_lt_2, int n>
+    struct fibonacci_case {
+      enum { value = f::template recursive<n - 1>::value +
+                     f::template recursive<n - 2>::value };
+    };
+
+    template <class f, int n>
+    struct fibonacci_case <f, true, n> {
+      enum { value = n };
+    };
+
+    struct fibonacci_piecewise {
+      template <int n>
+      struct recursive {
+        enum { value = fibonacci_case<fibonacci_piecewise, (n < 2), n>::value };
+      };
+    };
+
+    template <int n>
+    struct fibonacci {
+      enum { value = fibonacci_piecewise::template recursive<n>::value };
+    };
+
+    int main () {
+      std::cout << "fibonacci<10>::value = " << fibonacci<10>::value << std::endl;
+    }
+    :.
+__iBA5dPZPC4ZJ/5FRaJeya3BMc7J+6djHjuQi4TLESAU
+
 meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI');
 - Introduction to C++ Literate Coding
   The C++ literate code interface is much like the Java one, except that code sections use the \verb|name=x| attribute rather than \verb|class=| and \verb|package=|. The name is expected to
@@ -363,7 +472,7 @@ meta::cpp_section('encodings', <<'__6zeGwKMG2D22NYnKKE6QsOZ1loGU07E97t+uSlhFAgM'
 # Attribute cpp_section::encodings
 __6zeGwKMG2D22NYnKKE6QsOZ1loGU07E97t+uSlhFAgM
 
-meta::cpp_section('introduction', <<'__dindrJ/bm1aUiZFP76RoBfHiA0MTAzvdZ3AuEBGi8HQ');
+meta::cpp_section('introduction', <<'__78J/ZxCLQgE4ohHhzySMp4af3UHLcsd1QLZBJTU/9/g');
 - Introduction to Template Patterns
   \label{sec:introduction}
   Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
@@ -684,30 +793,7 @@ meta::cpp_section('introduction', <<'__dindrJ/bm1aUiZFP76RoBfHiA0MTAzvdZ3AuEBGi8
 
       The namespace here isn't necessary, but it hides what normally gets hidden when you create an anonymous closure. Also notice that it must be declared before \verb|container| due to C++'s
       forward-reference semantics.\footnote{Despite this, template expansion is generally lazy in other ways.}
-
-  - Makefile for examples
-    This makefile will build all of the examples listed in \Ref{section}{sec:introduction}. It is available in the source distribution as \verb|src/makefile|, and should be run from inside
-    \verb|src|. Note that it requires your version of \verb|gcc| to support a fairly recent C++0x draft, as specified by \verb|-std=gnu++0x|.
-
-    :: resource name=examples/makefile
-    WORKING = first-order-functions higher-order-functions indirect-functions \
-              apply-two-function specialization inner-specialization preprocessor/k
-    ERRORS  = indirect-functions-broken inner-specialization-broken
-
-    CC      = g++
-    CC_OPTS = -g -Wall -std=gnu++0x
-
-    all: $(WORKING)
-    broken: $(ERRORS)
-
-    .PHONY: clean
-    clean:
-    	rm -f $(WORKING) $(ERRORS)
-
-    %: %.cc
-    	$(CC) $(CC_OPTS) $< -o $@ || true
-    :.
-__dindrJ/bm1aUiZFP76RoBfHiA0MTAzvdZ3AuEBGi8HQ
+__78J/ZxCLQgE4ohHhzySMp4af3UHLcsd1QLZBJTU/9/g
 
 meta::cpp_section('preprocessor', <<'__TqAErsma1sPW6yJWHo2bTdNEsmbJzIFoDfrtbzx+G24');
 - Preprocessor Definitions
@@ -760,19 +846,53 @@ meta::cpp_section('representation', <<'__3+3jXCmg09z6YeYFJRrSiyDnWbJ7+UbflhQdW2t
   \Ref{section}{sec:metacircular}.
 __3+3jXCmg09z6YeYFJRrSiyDnWbJ7+UbflhQdW2tkB44
 
+meta::cpp_section('resources', <<'__nS6+h7GxqSlpl7Rl6Zyvr1bnozix/G2FQ5/VLx5D3bY');
+- Resources
+  \label{sec:resources}
+  This section contains extra files that are helpful for running the examples.
+
+  - Makefile for examples
+    This makefile will build all of the examples. It is available in the source distribution as \verb|src/makefile|, and should be run from inside \verb|src|. Note that it requires your
+    version of \verb|gcc| to support a fairly recent C++0x draft, as specified by \verb|-std=gnu++0x|. At some point in the future I'll go back and revise the code for compatibility with the
+    C++ 98 standard to remove this restriction.
+
+    :: resource name=examples/makefile
+    WORKING = first-order-functions higher-order-functions indirect-functions \
+              apply-two-function specialization inner-specialization fibonacci \
+              fibonacci-piecewise
+    BROKEN  = indirect-functions-broken inner-specialization-broken \
+              fibonacci-piecewise-broken
+
+    CC      = g++
+    CC_OPTS = -g -Wall -std=gnu++0x
+
+    all: $(WORKING)
+    broken: $(BROKEN)
+
+    .PHONY: clean
+    clean:
+    	rm -f $(WORKING) $(BROKEN)
+
+    %: %.cc
+    	$(CC) $(CC_OPTS) $< -o $@ || true
+    :.
+__nS6+h7GxqSlpl7Rl6Zyvr1bnozix/G2FQ5/VLx5D3bY
+
 meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
 __zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc
 
-meta::data('document', <<'__Car+x/4VatjhWCROQteVXaUiLnQP3YYeHuRCaryaNqE');
+meta::data('document', <<'__2mlm0tAR8LZCPCFXhYYsb92HH9TZgErwVHKlf9rQej0');
 = C++ Template Lisp Interpreter
 a Spencer Tipping
 begin
 
 %section(cpp_section::introduction)
+%section(cpp_section::basic-examples)
 %section(cpp_section::representation)
 %section(cpp_section::preprocessor)
-__Car+x/4VatjhWCROQteVXaUiLnQP3YYeHuRCaryaNqE
+%section(cpp_section::resources)
+__2mlm0tAR8LZCPCFXhYYsb92HH9TZgErwVHKlf9rQej0
 
 meta::data('header', <<'__HlC/zSnFNAXNbuJ/z8ZYgHsD5DWMisPBSt/xyoy+0cw');
 \documentclass{article}
@@ -821,9 +941,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__hKapC4iG9ZSpY4rskOWfHxHjEQMZBSadfthG4p5bxQw');
-/tmp/interpreter.uIHL0Iq9CDsIOyag+7JjcFL56MCkAnK1bDa0XWKE5ks/document.pdf
-__hKapC4iG9ZSpY4rskOWfHxHjEQMZBSadfthG4p5bxQw
+meta::data('pdf-output-file', <<'__H42ulB24oc5njRD3pOzKWHtDran3ctviZyA7uDyFpOU');
+/tmp/interpreter.jVbFkCQQY3urYY1RIx2+Bt7NHfwNU1l2nXSUJBmEe+Y/document.pdf
+__H42ulB24oc5njRD3pOzKWHtDran3ctviZyA7uDyFpOU
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
