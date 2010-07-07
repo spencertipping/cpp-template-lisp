@@ -1883,7 +1883,7 @@ hi link cltVerbatim String
 let b:current_syntax = "cltex"
 __i99D+bM2oHb2kJ9JHMYOpio7eDlvgAvVVrOhkUTyaxM
 
-meta::vim_highlighter('cpptex', <<'__N6YI1WK23oeIYylZ/zbeqw7wUunykPr0tAAhFL+VojQ');
+meta::vim_highlighter('cpptex', <<'__2H5AUY+IdhatqTOdpiXUmgcnlKmzCJsLpcRGMNUHyB0');
 " TeX with C++
 " Maintainer: Spencer Tipping <spencer@spencertipping.com>
 " Language:   TeX with C++ in it
@@ -1895,15 +1895,18 @@ elseif exists("b:current_syntax")
 endif
 
 syn region cpptexComment start=/\%^\|^\s*:.$/ end=/\%$\|^\s*::.*\<cpp\>.*$/ contains=cpptexSection
-syn match  cpptexSection /^\s*- .*$/           contained
+syn match  cpptexSection /^\s*- .*$/ contained
 
 runtime! syntax/cpp.vim
 
+syn match  cpptexInclude /#include\s\+\(\w\|[_()]\)\+/
+
 hi link cpptexSection Special
 hi link cpptexComment Comment
+hi link cpptexInclude PreProc
 
 let b:current_syntax = "cpptex"
-__N6YI1WK23oeIYylZ/zbeqw7wUunykPr0tAAhFL+VojQ
+__2H5AUY+IdhatqTOdpiXUmgcnlKmzCJsLpcRGMNUHyB0
 
 meta::vim_highlighter('javatex', <<'__nEheNk5KhfU1tIJUV7PcB9MfRb0bIbRXyu7BN/Ws6bU');
 " TeX with Java
