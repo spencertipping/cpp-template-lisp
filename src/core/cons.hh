@@ -3,16 +3,11 @@
 
 #include "core.hh"
 #include LISP_BEGIN_CORE_MODULE()
-struct cons {
-  template <class h, class t>
-  struct apply {
-    struct type {
-      template <class f>
-      struct apply {
-        typedef f<h, t> type;
-      };
-    };
+defun(cons, class h, class t) {
+  local_defun(closure, class f) {
+    ret(call(f, h, t));
   };
+  ret(closure);
 };
 #include LISP_END_CORE_MODULE()
 

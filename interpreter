@@ -346,6 +346,33 @@ unless ($settings{'name'}) {
 return $line;
 __AON9bxWzZOMpERGSJVrit8dkijYb5Re8IIg2PEC5i1s
 
+meta::cpp_section('beta', <<'__v6pIzEGPgn/w625CCVpUy6RmkXs8PnmPr15dfysLKcw');
+- $\beta$-Rewrite Representation
+  This section outlines the conversion process from a simple $\beta$-rewrite calculus to template metaprogramming constructs. This rewrite system then is combined with an \verb|eval| function
+  to form the basis for the metacircular interpreter defined in \Ref{section}{sec:metacircular}.
+
+  - List construct
+    The $\beta$ rewrite system assumes the existence of two data types. One is the {\em term}, which corresponds to a value that might get replaced, and the other is a cons cell of two values.
+    The first step to modeling these things is defining a cons cell, which for this system is Church-encoded:
+
+    :: cpp name=core/cons.hh
+    #ifndef CORE_CONS_HH
+    #define CORE_CONS_HH
+
+    #include "core.hh"
+    #include LISP_BEGIN_CORE_MODULE()
+    defun(cons, class h, class t) {
+      local_defun(closure, class f) {
+        ret(call(f, h, t));
+      };
+      ret(closure);
+    };
+    #include LISP_END_CORE_MODULE()
+
+    #endif
+    :.
+__v6pIzEGPgn/w625CCVpUy6RmkXs8PnmPr15dfysLKcw
+
 meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI');
 - Introduction to C++ Literate Coding
   The C++ literate code interface is much like the Java one, except that code sections use the \verb|name=x| attribute rather than \verb|class=| and \verb|package=|. The name is expected to
@@ -359,7 +386,7 @@ meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXb
   :.
 __dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI
 
-meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlAOs');
+meta::cpp_section('introduction', <<'__sNCvfcbHyZmCPQVmc4GGRw4rEnB6Dx95myURjBJ9yAE');
 - Introduction to Template Patterns
   \label{sec:introduction}
   Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
@@ -370,7 +397,7 @@ meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlA
     Constants are simply \verb|struct|s, \verb|class|es, or other types that don't take template parameters. It isn't a problem if they do take template parameters, of course; those will
     simply be specified later once the constant has propagated through the lambda expansion.
 
-    :: cpp name=examples/constants.hh
+    :: cpp name=examples/introduction/constants.hh
     // Defining a constant term
     struct foo {
       enum {value = 10};
@@ -392,7 +419,7 @@ meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlA
   - First-order function encoding
     The idea is to have \verb|struct|s that represent terms of the calculus. If they are templates, then they represent functions (which are also terms). For example:
 
-    :: cpp name=examples/first-order-functions.cc
+    :: cpp name=examples/introduction/first-order-functions.cc
     #include <iostream>
     #include "constants.hh"
 
@@ -420,7 +447,7 @@ meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlA
     In practice there is some difficulty already. Notice the use of \verb|::type| to retrieve the value of a function application. This slot had to be assumed by the caller; it is analogous to
     JavaScript code like this:
 
-    :: resource name=examples/unfriendly-identity.js
+    :: resource name=examples/introduction/unfriendly-identity.js
     // An unfriendly identity function.
     var identity = function (x) {
       return {type: x};
@@ -444,7 +471,7 @@ meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlA
     extensional functional programming. In the latter, term juxtaposition (e.g. {\tt f x}) constitutes invocation of the default slot, generally referred to as {\em apply}. In the former,
     slots are explicitly named, as would be the case in a language such as Java -- thus juxtaposition has no meaning on its own.} We do this by declaring another template inside the first:
 
-    :: cpp name=examples/higher-order-functions.cc
+    :: cpp name=examples/introduction/higher-order-functions.cc
     #include <iostream>
     #include "constants.hh"
 
@@ -474,7 +501,7 @@ meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlA
     At this point it should be clear that nothing is standardized here. Top-level functions are invoked directly, whereas returned functions use \verb|::apply<x>|. Type results from template
     invocations are accessed as \verb|::type|. One way to go about fixing it is to make a rule that a function gets encoded a bit less directly:
 
-    :: cpp name=examples/indirect-functions-broken.cc
+    :: cpp name=examples/introduction/indirect-functions-broken.cc
     // Encoding the K combinator uniformly, but with compile errors
     struct k {
       template<class t>
@@ -490,7 +517,7 @@ meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlA
     However, if you compile it you get an error stating that you can't define a nested \verb|struct| with the same name as the outer one. The solution is to use an intermediate \verb|::type|
     dereference to wrap the inner \verb|::apply<x>|.
 
-    :: cpp name=examples/indirect-functions.cc
+    :: cpp name=examples/introduction/indirect-functions.cc
     #include <iostream>
     #include "constants.hh"
 
@@ -528,14 +555,14 @@ meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlA
 
     Here is the Haskell function that we will model in C++ templates:
 
-    :: resource name=examples/apply-two-function.hs
+    :: resource name=examples/introduction/apply-two-function.hs
     apply_two :: ((a, a) -> b) -> a -> b
     apply_two f x = f (x, x)
     :.
 
     In template metaprogramming it isn't possible to express the constraints about values, but we can express constraints about arity and function status:
 
-    :: cpp name=examples/apply-two-function.cc
+    :: cpp name=examples/introduction/apply-two-function.cc
     #include <iostream>
     #include "constants.hh"
 
@@ -589,7 +616,7 @@ meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlA
     Templates don't model conditionals {\em per se}. Rather, you can create conditionals by using pattern matching and explicit specialization. There are some weird limitations about this, but
     here is the basic idea:
 
-    :: cpp name=examples/specialization.cc
+    :: cpp name=examples/introduction/specialization.cc
     #include <iostream>
     #include "constants.hh"
 
@@ -619,7 +646,7 @@ meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlA
       Because terminal (i.e.~non-expanding) types are extensionally equivalent, pattern matching can be used to reliably specialize template expansions. The only case where this doesn't work
       is inside a class:
 
-      :: cpp name=examples/inner-specialization-broken.cc
+      :: cpp name=examples/introduction/inner-specialization-broken.cc
       template<class t>
       struct container {
         template<class u>
@@ -639,7 +666,7 @@ meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlA
 
       The solution to this problem is to break the inner class outside of the outer one and uncurry its arguments:
 
-      :: cpp name=examples/inner-specialization.cc
+      :: cpp name=examples/introduction/inner-specialization.cc
       #include <iostream>
       #include "constants.hh"
 
@@ -676,25 +703,24 @@ meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlA
 
       The namespace here isn't necessary, but it hides what normally gets hidden when you create an anonymous closure. Also notice that it must be declared before \verb|container| due to C++'s
       forward-reference semantics.\footnote{Despite this, template expansion is generally lazy in other ways.}
-__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlAOs
+__sNCvfcbHyZmCPQVmc4GGRw4rEnB6Dx95myURjBJ9yAE
 
-meta::cpp_section('preprocessor', <<'__TqAErsma1sPW6yJWHo2bTdNEsmbJzIFoDfrtbzx+G24');
+meta::cpp_section('preprocessor', <<'__bmpC3arZlNIX+B+meDK7rQvqOAyXG3XN3szOCsIp88k');
 - Preprocessor Definitions
   \label{sec:preprocessor-definitions}
-  The goal of this section is to implement the language defined in \Ref{section}{sec:representation}. Roughly, the main operations are:
+  The goal of this section is to implement a layer of abstraction over the base template constructs. Roughly, the operations are:
 
   e[
     + Defining a global constant
     + Defining a local variable
     + Applying a function to an expression \label{itm:apply-function-to-expression}
     + Returning a value from a function
-    + Defining a function
-    + Defining a closure
+    + Defining a named function
   ]e
 
-  Each of these operations has a roughly standard form.\footnote{There are two for \Ref{item}{itm:apply-function-to-expression}; one form is used outside of a function body and the other is
-  used inside. The difference has to do with disambiguating template expansions and is covered in \Ref{section}{sec:disambiguating-template-expansions}. Also a great article about the role of
-  {\tt typename} in C++, its uses, and its limitations: \url{http://pages.cs.wisc.edu/~driscoll/typename.html}.} The definition of a shorthand for each is given in the following subsections.
+  Each of these operations has a standard form.\footnote{There are two for \Ref{item}{itm:apply-function-to-expression}; one form is used outside of a function body and the other is used
+  inside. The difference has to do with disambiguating template expansions and is covered in \Ref{section}{sec:function-application}. Also a great article about the role of {\tt typename} in
+  C++, its uses, and its limitations: \url{http://pages.cs.wisc.edu/~driscoll/typename.html}.} The definition of a shorthand for each is given in the following subsections.
 
   - Preprocessor limitations
     One notable limitation of the C preprocessor when working with templates is that it doesn't treat \verb|<| and \verb|>| as nested parentheticals.\footnote{It wouldn't be possible for it to
@@ -720,60 +746,208 @@ meta::cpp_section('preprocessor', <<'__TqAErsma1sPW6yJWHo2bTdNEsmbJzIFoDfrtbzx+G
 
     This will preserve the commas in the original expression, although its use may be limited to the GNU preprocessor.\footnote{A more standard way to do this is to use the {\tt
     \_\_VA\_ARGS\_\_} builtin and an anonymous ellipsis.}
-__TqAErsma1sPW6yJWHo2bTdNEsmbJzIFoDfrtbzx+G24
 
-meta::cpp_section('representation', <<'__HZC8QOPpEV8VxBFw8aQPmIgqqRqG0Y+gB2tOd9RpXWk');
-- $\beta$-Rewrite Representation
-  This section outlines the conversion process from a simple $\beta$-rewrite calculus to template metaprogramming constructs. This rewrite system then is combined with an \verb|eval| function
-  to form the basis for the metacircular interpreter defined in \Ref{section}{sec:metacircular}.
+  - Global constants
+    \label{sec:global-definitions}
+    A global constant is just a standalone \verb|struct|. To encode this, we create the \verb|def()| macro, which basically just expands out to \verb|struct|. However, it is a bit clearer than
+    its expansion, especially in the context of defining functions and values.
 
-  - List construct
-    The $\beta$ rewrite system assumes the existence of two data types. One is the {\em term}, which corresponds to a value that might get replaced, and the other is a cons cell of two values.
-    The first step to modeling these things is defining a cons cell, which for this system is Church-encoded:
+    This module, like all of the preprocessor utilities, can be enabled and disabled multiple times during preprocessing. This prevents the macros from interfering with regular code, which
+    ultimately enables clearer macro naming. The mechanism that governs enabling and disabling is the \verb|LISP_PREPROCESSOR_DEFINE| preprocessor variable. If defined, then the header is run
+    in ``definition mode'' and will create macros. Otherwise it will undefine the macros. You can see whether a macro is defined as well; each header file defines a macro called
+    \verb|LISP_PREPROCESSOR_X_ENABLED|, where \verb|X| is the upper-case name of the header file. This macro is undefined when the header is disabled.
 
-    :: cpp name=core/cons.hh
-    #ifndef CORE_CONS_HH
-    #define CORE_CONS_HH
+    Note that you shouldn't ever include this header file directly. See \Ref{section}{sec:preprocessor-interface} for a simple interface to enable and disable preprocessor macros.
 
-    #include "core.hh"
-    #include LISP_BEGIN_CORE_MODULE()
-    struct cons {
-      template <class h, class t>
-      struct apply {
-        struct type {
-          template <class f>
-          struct apply {
-            typedef f<h, t> type;
+    :: cpp name=preprocessor/def.hh
+    #ifdef LISP_PREPROCESSOR_DEFINE
+    #  define LISP_PREPROCESSOR_DEF_ENABLED
+    #  define def(name) struct name
+    #else
+    #  undef  LISP_PREPROCESSOR_DEF_ENABLED
+    #  undef  def
+    #endif
+    :.
+
+  - Local variables
+    Within a \verb|struct|, local variables are prefixed with \verb|private|.
+
+    :: cpp name=preprocessor/let.hh
+    #ifdef LISP_PREPROCESSOR_DEFINE
+    #  define LISP_PREPROCESSOR_LET_ENABLED
+    #  define let(name, value...) private: typedef value name
+    #  define local_def(name)     private: struct name
+    #else
+    #  undef  LISP_PREPROCESSOR_LET_ENABLED
+    #  undef  let
+    #  undef  local_def
+    #endif
+    :.
+
+  - Function application
+    \label{sec:function-application}
+    It is assumed that function application involves dependent types.\footnote{In the C++ sense, not the type-theoretic sense. C++ dependent types are the transitive closure of template
+    variables through the expansion graph.} In that case, the default \verb|call(x, ...)| works fine. If, however, the function call's types are already resolved and do not depend on template
+    variables, then you will probably want to use \verb|call_static| instead.
+
+    :: cpp name=preprocessor/call.hh
+    #ifdef LISP_PREPROCESSOR_DEFINE
+    #  define LISP_PREPROCESSOR_CALL_ENABLED
+    #  define call(lhs, rhs...) typename lhs::template apply<rhs>::type
+    #  define call_static(lhs, rhs...) lhs::apply<rhs>::type
+    #else
+    #  undef  LISP_PREPROCESSOR_CALL_ENABLED
+    #  undef  call
+    #  undef  call_static
+    #endif
+    :.
+
+  - Returning a value
+    It is straightforward to return a named value. This always takes the form \verb|typedef x type|, where \verb|x| is the value to be returned. For simplicity's sake, I'm going to assume that
+    whatever value should be returned has a name to preserve the uniformity of the return expansion. Note that it is prefixed with \verb|public| to override any previous local variables that
+    were defined.
+
+    :: cpp name=preprocessor/ret.hh
+    #ifdef LISP_PREPROCESSOR_DEFINE
+    #  define LISP_PREPROCESSOR_RET_ENABLED
+    #  define ret(value...) public: typedef value type
+    #else
+    #  undef  LISP_PREPROCESSOR_RET_ENABLED
+    #  undef  ret
+    #endif
+    :.
+
+  - Defining a named function
+    To remain in the mindset of the model C++ uses for template specialization, defining a named function is a two-step process. First, you define the outer \verb|struct| using \verb|def()|
+    (see \Ref{section}{sec:global-definitions}). Inside that you can specify the cases using the \verb|when()| macro.
+
+    :: cpp name=preprocessor/when.hh
+    #ifdef LISP_PREPROCESSOR_DEFINE
+    #  define LISP_PREPROCESSOR_WHEN_ENABLED
+    #  define when(parameters...) template <parameters> struct apply
+    #else
+    #  undef  LISP_PREPROCESSOR_WHEN_ENABLED
+    #  undef  when
+    #endif
+    :.
+
+  - Defining and returning closures
+    It is fairly simple to return a closure. The idea is that you create a local named function and then return that by name, so to implement the K combinator, for example, you would do
+    something like this:
+
+    ::
+    def(k) {
+      when(class x) {
+        local_def(inner) {
+          when(class y) {
+            ret(x);
           };
         };
+
+        ret(inner);
       };
     };
-    #include LISP_END_CORE_MODULE()
+    :.
+
+    However, that's a bulky representation given that no explicit specialization is occurring. To inline the function definitions, this form can be used instead:
+
+    :: cpp name=preprocessor/defun.hh
+    #ifdef LISP_PREPROCESSOR_DEFINE
+    #  define LISP_PREPROCESSOR_DEFUN_ENABLED
+    #  define defun(name, params...)       def(name) {}; \
+                                           template<params...> struct name::apply
+    #  define local_defun(name, params...) local_def(name) {}; \
+                                           template<params...> struct name::apply
+    #else
+    #  undef  LISP_PREPROCESSOR_DEFUN_ENABLED
+    #  undef  defun
+    #  undef  local_defun
+    #endif
+    :.
+
+  - Preprocessor interface
+    \label{sec:preprocessor-interface}
+    Rather than using the files above, it's better to include these header files to enable or disable the preprocessor macros.
+
+    :: cpp name=preprocessor-enable.hh
+    #ifndef LISP_PREPROCESSOR_DEFINE
+    #define LISP_PREPROCESSOR_DEFINE
+    #include "preprocessor/all.hh"
+    #endif
+    :.
+
+    :: cpp name=preprocessor-disable.hh
+    #ifdef LISP_PREPROCESSOR_DEFINE
+    #undef LISP_PREPROCESSOR_DEFINE
+    #include "preprocessor/all.hh"
+    #endif
+    :.
+
+    This file is used internally to include all of the modules listed in the previous subsections:
+
+    :: cpp name=preprocessor/all.hh
+    #include "preprocessor/def.hh"
+    #include "preprocessor/let.hh"
+    #include "preprocessor/call.hh"
+    #include "preprocessor/ret.hh"
+    #include "preprocessor/when.hh"
+    #include "preprocessor/defun.hh"
+    :.
+
+  - Core interface
+    This header contains some definitions that abstract away details of writing modules. It uses the macro-expanded \verb|#include|s used throughout the Boost library source code, which
+    indicates that the header file is intended to be included multiple times.
+
+    :: cpp name=core.hh
+    #ifndef CORE_HH
+    #define CORE_HH
+
+    #define LISP_BEGIN_MODULE "preprocessor/module-begin.hh"
+    #define LISP_END_MODULE   "preprocessor/module-end.hh"
 
     #endif
     :.
-__HZC8QOPpEV8VxBFw8aQPmIgqqRqG0Y+gB2tOd9RpXWk
 
-meta::cpp_section('resources', <<'__EgUURTEwiudOewj1glfXXJItp0qQImr3HlI6/KS/DyU');
+    Below are the two auxiliary files referenced above. Inside modules the preprocessor macros are enabled, and outside they are disabled. The usage generally looks like this:
+
+    ::
+    #include LISP_BEGIN_MODULE()
+    // module code
+    #include LISP_END_MODULE()
+    :.
+
+    :: cpp name=preprocessor/module-begin.hh
+    #include "preprocessor-enable.hh"
+    namespace lisp {
+    :.
+
+    :: cpp name=preprocessor/module-end.hh
+    }
+    #include "preprocessor-disable.hh"
+    :.
+__bmpC3arZlNIX+B+meDK7rQvqOAyXG3XN3szOCsIp88k
+
+meta::cpp_section('resources', <<'__bfyS0axu6y0to3Hv6X6rMxyPQSC4ntci4aIU0pGIZ0w');
 - Resources
   \label{sec:resources}
-  This section contains extra files that are helpful for running the examples.
+  This section contains extra files that are helpful for running the examples. Note that this library requires your version of \verb|gcc| to support a fairly recent C++0x draft, as specified
+  by \verb|-std=gnu++0x|.
 
-  - Makefile for examples
-    This makefile will build all of the examples. It is available in the source distribution as \verb|src/examples/makefile|, and should be run from inside \verb|src/examples|. Note that it
-    requires your version of \verb|gcc| to support a fairly recent C++0x draft, as specified by \verb|-std=gnu++0x|. At some point in the future I'll go back and revise the code for
-    compatibility with the C++ 98 standard to remove this restriction.
+  - Makefile for introduction examples
+    This makefile will build all of the examples in \Ref{section}{sec:introduction}. It is available in the source distribution as \verb|src/examples/introduction/makefile|, and should be run
+    from inside \verb|src/examples/introduction|. Alternatively, all of the examples can be compiled by using the makefile in \verb|src/examples|.
 
-    :: resource name=examples/makefile
-    WORKING = first-order-functions higher-order-functions indirect-functions \
-              apply-two-function specialization inner-specialization fibonacci \
-              fibonacci-piecewise linked-list church-lists
+    :: resource name=examples/introduction/makefile
+    WORKING  = first-order-functions higher-order-functions indirect-functions \
+               apply-two-function specialization inner-specialization fibonacci \
+               fibonacci-piecewise linked-list church-lists
 
-    BROKEN  = indirect-functions-broken inner-specialization-broken \
-              fibonacci-piecewise-broken self-reference-broken
+    BROKEN   = indirect-functions-broken inner-specialization-broken \
+               fibonacci-piecewise-broken self-reference-broken
 
-    CC      = g++
-    CC_OPTS = -g -Wall -std=gnu++0x
+    BASE_DIR = ../
+    CC       = g++
+    CC_OPTS  = -g -Wall -std=gnu++0x -I$(BASE_DIR)
 
     all: $(WORKING)
     broken: $(BROKEN)
@@ -785,9 +959,31 @@ meta::cpp_section('resources', <<'__EgUURTEwiudOewj1glfXXJItp0qQImr3HlI6/KS/DyU'
     %: %.cc
     	$(CC) $(CC_OPTS) $< -o $@ || true
     :.
-__EgUURTEwiudOewj1glfXXJItp0qQImr3HlI6/KS/DyU
 
-meta::cpp_section('value-space', <<'__B/Tl/oOUtn02+KcPg5iS6FfVOE0ybijipoouWiulocw');
+  - Makefile for tests
+    This makefile builds the unit and integration tests for the Lisp implementation. The tests should fail at compile-time if an assertion is not satisfied. This file should be run from
+    \verb|src/tests|.
+
+    :: resource name=tests/makefile
+    UNIT        = cons-test
+    INTEGRATION =
+
+    BASE_DIR    = ../
+    CC          = g++
+    CC_OPTS     = -g -Wall -std=gnu++0x -I$(BASE_DIR)
+
+    all: $(UNIT) $(INTEGRATION)
+
+    .PHONY: clean
+    clean:
+    	rm -f $(UNIT) $(INTEGRATION)
+
+    %: %.cc
+    	$(CC) $(CC_OPTS) $< -o $@ || true
+    :.
+__bfyS0axu6y0to3Hv6X6rMxyPQSC4ntci4aIU0pGIZ0w
+
+meta::cpp_section('value-space', <<'__VXN1jkOa9voMVMDxjWV3BBEugkXKkypIxjzx3L48eu0');
 - Metaprogramming in Value Space
   Without using any particular encoding, this section provides a few examples of template metaprogramming in action. Each example has been factored down by preprocessor macros to show the
   structure of the code. Also, these examples are not necessarily representative of best practices, nor do they scale well.
@@ -810,7 +1006,7 @@ meta::cpp_section('value-space', <<'__B/Tl/oOUtn02+KcPg5iS6FfVOE0ybijipoouWiuloc
     The compact definition is possible, however. The key is to encode that condition separately and specialize on a boolean parameter. That is implemented in
     \Ref{section}{sec:fibonacci-piecewise}.
 
-    :: cpp name=examples/fibonacci.cc
+    :: cpp name=examples/introduction/fibonacci.cc
     #include <iostream>
 
     #define letrec(name, params, defaults, expression) \
@@ -845,7 +1041,7 @@ meta::cpp_section('value-space', <<'__B/Tl/oOUtn02+KcPg5iS6FfVOE0ybijipoouWiuloc
 
     Here is the obvious way to go about it, though it doesn't work because of mutual dependencies in the definitions:
 
-    :: cpp name=examples/fibonacci-piecewise-broken.cc
+    :: cpp name=examples/introduction/fibonacci-piecewise-broken.cc
     template <bool n_lt_2, int n>
     struct fibonacci_case {
       enum { value = fibonacci<n - 1>::value + fibonacci<n - 2>::value };
@@ -864,7 +1060,7 @@ meta::cpp_section('value-space', <<'__B/Tl/oOUtn02+KcPg5iS6FfVOE0ybijipoouWiuloc
 
     C++ needs to know about template types before you hit them. Because there isn't a way to forward-define templates, we have to get a little bit more creative:
 
-    :: cpp name=examples/fibonacci-piecewise.cc
+    :: cpp name=examples/introduction/fibonacci-piecewise.cc
     #include <iostream>
 
     template <class f, bool n_lt_2, int n>
@@ -898,7 +1094,7 @@ meta::cpp_section('value-space', <<'__B/Tl/oOUtn02+KcPg5iS6FfVOE0ybijipoouWiuloc
     Note the wrapping of \verb|fibonacci_piecewise::recursive|. This is necessary because within the scope of a template, the name of the templated construct refers to the specialized form,
     not the template itself. For example:
 
-    :: cpp name=examples/self-reference-broken.cc
+    :: cpp name=examples/introduction/self-reference-broken.cc
     template <int n>
     struct foo {
       typedef foo bar;
@@ -920,7 +1116,7 @@ meta::cpp_section('value-space', <<'__B/Tl/oOUtn02+KcPg5iS6FfVOE0ybijipoouWiuloc
 
     The \verb|q| function in this example works around a limitation of the preprocessor. \Ref{Section}{sec:preprocessor-limitations} covers this in more detail.
 
-    :: cpp name=examples/linked-list.cc
+    :: cpp name=examples/introduction/linked-list.cc
     #include <iostream>
 
     #define function(name, params, values...) \
@@ -947,7 +1143,7 @@ meta::cpp_section('value-space', <<'__B/Tl/oOUtn02+KcPg5iS6FfVOE0ybijipoouWiuloc
     This is a more involved example that uses curried templates and a Church encoding. Note the transition between value-space and type-space achieved by using \verb|select|. \verb|select|
     effectively serves as a map from \verb|bool| to either \verb|head| or \verb|tail|.
 
-    :: cpp name=examples/church-lists.cc
+    :: cpp name=examples/introduction/church-lists.cc
     #include <iostream>
 
     #define fn(args...)        template <args> struct
@@ -1042,13 +1238,13 @@ meta::cpp_section('value-space', <<'__B/Tl/oOUtn02+KcPg5iS6FfVOE0ybijipoouWiuloc
     then apply the cons cell to that outcome to obtain the conditional result. The only problem with this approach is that both possibilities end up getting evaluated regardless of the
     condition. So in general, church-encodings of booleans and other conditionals has the caveat that it may cause infinite recursion. Most conditionals should probably be implemented using
     specialization (see \Ref{section}{sec:fibonacci-piecewise}) to avoid this problem.
-__B/Tl/oOUtn02+KcPg5iS6FfVOE0ybijipoouWiulocw
+__VXN1jkOa9voMVMDxjWV3BBEugkXKkypIxjzx3L48eu0
 
 meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
 __zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc
 
-meta::data('document', <<'__viaUMuvtgpNOOT3jcd7H4wvsKXo0CaNbtEpFKHVWCD8');
+meta::data('document', <<'__AHVy0FAYfz8UVZgushpXe4nEKQWJkX21RKLuljQTXEc');
 = C++ Template Lisp Interpreter
 a Spencer Tipping
 begin
@@ -1056,9 +1252,9 @@ begin
 %section(cpp_section::introduction)
 %section(cpp_section::value-space)
 %section(cpp_section::preprocessor)
-%section(cpp_section::representation)
+%section(cpp_section::beta)
 %section(cpp_section::resources)
-__viaUMuvtgpNOOT3jcd7H4wvsKXo0CaNbtEpFKHVWCD8
+__AHVy0FAYfz8UVZgushpXe4nEKQWJkX21RKLuljQTXEc
 
 meta::data('header', <<'__HlC/zSnFNAXNbuJ/z8ZYgHsD5DWMisPBSt/xyoy+0cw');
 \documentclass{article}
@@ -1107,9 +1303,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__2qM1Un2JWbhHIrRCV3AYAY2lHpBQFBcBghr5w54WSjg');
-/tmp/interpreter.v-1Te00Bxkz983BMxPgjhwhI2kJOAWyRGBTpd3winCs/document.pdf
-__2qM1Un2JWbhHIrRCV3AYAY2lHpBQFBcBghr5w54WSjg
+meta::data('pdf-output-file', <<'__KCzktGrVEAfjieWijj7VpxelECln4Oz1DbVVUPXbiHo');
+/tmp/interpreter.sCzEgK7VaNR78uvLB-cUK7jkS0ZIiSf4835rVccHq7I/document.pdf
+__KCzktGrVEAfjieWijj7VpxelECln4Oz1DbVVUPXbiHo
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
