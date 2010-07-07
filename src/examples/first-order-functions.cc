@@ -1,5 +1,5 @@
 #include <iostream>
-#include "constants.h"
+#include "constants.hh"
 
 // Defining the identity function, where the result
 // can be retrieved by specifying bar<T>::type

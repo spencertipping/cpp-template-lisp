@@ -1,5 +1,5 @@
 #include <iostream>
-#include "constants.h"
+#include "constants.hh"
 
 // Defining the K combinator
 template<class t>

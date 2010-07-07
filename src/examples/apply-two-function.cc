@@ -1,5 +1,5 @@
 #include <iostream>
-#include "constants.h"
+#include "constants.hh"
 
 // Encoding the type signature as a template parameter specification
 struct apply_two {

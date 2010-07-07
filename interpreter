@@ -359,11 +359,7 @@ meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXb
   :.
 __dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI
 
-meta::cpp_section('encodings', <<'__6zeGwKMG2D22NYnKKE6QsOZ1loGU07E97t+uSlhFAgM');
-# Attribute cpp_section::encodings
-__6zeGwKMG2D22NYnKKE6QsOZ1loGU07E97t+uSlhFAgM
-
-meta::cpp_section('introduction', <<'__2AgvUUxVXXJJCsiFwAuXZVPmaEYpoa8wkMGaMAkns4s');
+meta::cpp_section('introduction', <<'__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlAOs');
 - Introduction to Template Patterns
   \label{sec:introduction}
   Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
@@ -374,7 +370,7 @@ meta::cpp_section('introduction', <<'__2AgvUUxVXXJJCsiFwAuXZVPmaEYpoa8wkMGaMAkns
     Constants are simply \verb|struct|s, \verb|class|es, or other types that don't take template parameters. It isn't a problem if they do take template parameters, of course; those will
     simply be specified later once the constant has propagated through the lambda expansion.
 
-    :: cpp name=examples/constants.h
+    :: cpp name=examples/constants.hh
     // Defining a constant term
     struct foo {
       enum {value = 10};
@@ -398,7 +394,7 @@ meta::cpp_section('introduction', <<'__2AgvUUxVXXJJCsiFwAuXZVPmaEYpoa8wkMGaMAkns
 
     :: cpp name=examples/first-order-functions.cc
     #include <iostream>
-    #include "constants.h"
+    #include "constants.hh"
 
     // Defining the identity function, where the result
     // can be retrieved by specifying bar<T>::type
@@ -450,7 +446,7 @@ meta::cpp_section('introduction', <<'__2AgvUUxVXXJJCsiFwAuXZVPmaEYpoa8wkMGaMAkns
 
     :: cpp name=examples/higher-order-functions.cc
     #include <iostream>
-    #include "constants.h"
+    #include "constants.hh"
 
     // Defining the K combinator
     template<class t>
@@ -496,7 +492,7 @@ meta::cpp_section('introduction', <<'__2AgvUUxVXXJJCsiFwAuXZVPmaEYpoa8wkMGaMAkns
 
     :: cpp name=examples/indirect-functions.cc
     #include <iostream>
-    #include "constants.h"
+    #include "constants.hh"
 
     // Encoding the K combinator uniformly
     struct k {
@@ -541,7 +537,7 @@ meta::cpp_section('introduction', <<'__2AgvUUxVXXJJCsiFwAuXZVPmaEYpoa8wkMGaMAkns
 
     :: cpp name=examples/apply-two-function.cc
     #include <iostream>
-    #include "constants.h"
+    #include "constants.hh"
 
     // Encoding the type signature as a template parameter specification
     struct apply_two {
@@ -595,7 +591,7 @@ meta::cpp_section('introduction', <<'__2AgvUUxVXXJJCsiFwAuXZVPmaEYpoa8wkMGaMAkns
 
     :: cpp name=examples/specialization.cc
     #include <iostream>
-    #include "constants.h"
+    #include "constants.hh"
 
     // General case
     template<class t>
@@ -645,7 +641,7 @@ meta::cpp_section('introduction', <<'__2AgvUUxVXXJJCsiFwAuXZVPmaEYpoa8wkMGaMAkns
 
       :: cpp name=examples/inner-specialization.cc
       #include <iostream>
-      #include "constants.h"
+      #include "constants.hh"
 
       namespace inside_container {
         template<class t, class u>
@@ -680,7 +676,7 @@ meta::cpp_section('introduction', <<'__2AgvUUxVXXJJCsiFwAuXZVPmaEYpoa8wkMGaMAkns
 
       The namespace here isn't necessary, but it hides what normally gets hidden when you create an anonymous closure. Also notice that it must be declared before \verb|container| due to C++'s
       forward-reference semantics.\footnote{Despite this, template expansion is generally lazy in other ways.}
-__2AgvUUxVXXJJCsiFwAuXZVPmaEYpoa8wkMGaMAkns4s
+__surjl87uVn2wKKeYjYsZH0E3AnFRv1rqe8yF0PXlAOs
 
 meta::cpp_section('preprocessor', <<'__TqAErsma1sPW6yJWHo2bTdNEsmbJzIFoDfrtbzx+G24');
 - Preprocessor Definitions
@@ -726,12 +722,37 @@ meta::cpp_section('preprocessor', <<'__TqAErsma1sPW6yJWHo2bTdNEsmbJzIFoDfrtbzx+G
     \_\_VA\_ARGS\_\_} builtin and an anonymous ellipsis.}
 __TqAErsma1sPW6yJWHo2bTdNEsmbJzIFoDfrtbzx+G24
 
-meta::cpp_section('representation', <<'__3+3jXCmg09z6YeYFJRrSiyDnWbJ7+UbflhQdW2tkB44');
-- Representation of Lambda Calculus Constructs
-  This section outlines the conversion process from the untyped lambda calculus to templates. It starts with just the context from \Ref{section}{sec:introduction}, and ends up with a
-  Turing-complete mini-language that is then implemented in \Ref{section}{sec:preprocessor-definitions}. This language then forms the basis for the metacircular interpreter defined in
-  \Ref{section}{sec:metacircular}.
-__3+3jXCmg09z6YeYFJRrSiyDnWbJ7+UbflhQdW2tkB44
+meta::cpp_section('representation', <<'__HZC8QOPpEV8VxBFw8aQPmIgqqRqG0Y+gB2tOd9RpXWk');
+- $\beta$-Rewrite Representation
+  This section outlines the conversion process from a simple $\beta$-rewrite calculus to template metaprogramming constructs. This rewrite system then is combined with an \verb|eval| function
+  to form the basis for the metacircular interpreter defined in \Ref{section}{sec:metacircular}.
+
+  - List construct
+    The $\beta$ rewrite system assumes the existence of two data types. One is the {\em term}, which corresponds to a value that might get replaced, and the other is a cons cell of two values.
+    The first step to modeling these things is defining a cons cell, which for this system is Church-encoded:
+
+    :: cpp name=core/cons.hh
+    #ifndef CORE_CONS_HH
+    #define CORE_CONS_HH
+
+    #include "core.hh"
+    #include LISP_BEGIN_CORE_MODULE()
+    struct cons {
+      template <class h, class t>
+      struct apply {
+        struct type {
+          template <class f>
+          struct apply {
+            typedef f<h, t> type;
+          };
+        };
+      };
+    };
+    #include LISP_END_CORE_MODULE()
+
+    #endif
+    :.
+__HZC8QOPpEV8VxBFw8aQPmIgqqRqG0Y+gB2tOd9RpXWk
 
 meta::cpp_section('resources', <<'__EgUURTEwiudOewj1glfXXJItp0qQImr3HlI6/KS/DyU');
 - Resources
@@ -1027,17 +1048,17 @@ meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
 __zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc
 
-meta::data('document', <<'__xNJ5t9Yd7bKYybO37rmxklHnFN843gWjRpRLvvPS16g');
+meta::data('document', <<'__viaUMuvtgpNOOT3jcd7H4wvsKXo0CaNbtEpFKHVWCD8');
 = C++ Template Lisp Interpreter
 a Spencer Tipping
 begin
 
 %section(cpp_section::introduction)
 %section(cpp_section::value-space)
-%section(cpp_section::representation)
 %section(cpp_section::preprocessor)
+%section(cpp_section::representation)
 %section(cpp_section::resources)
-__xNJ5t9Yd7bKYybO37rmxklHnFN843gWjRpRLvvPS16g
+__viaUMuvtgpNOOT3jcd7H4wvsKXo0CaNbtEpFKHVWCD8
 
 meta::data('header', <<'__HlC/zSnFNAXNbuJ/z8ZYgHsD5DWMisPBSt/xyoy+0cw');
 \documentclass{article}
@@ -1086,9 +1107,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__mzVrSi/jkavANF5FYhJea27gwhuNkbEG7Bp5ncGBYF4');
-/tmp/interpreter.0lOhXqE3dToppaIzRIsEjdgEYZQEObLmGhYMdSpLSlQ/document.pdf
-__mzVrSi/jkavANF5FYhJea27gwhuNkbEG7Bp5ncGBYF4
+meta::data('pdf-output-file', <<'__2qM1Un2JWbhHIrRCV3AYAY2lHpBQFBcBghr5w54WSjg');
+/tmp/interpreter.v-1Te00Bxkz983BMxPgjhwhI2kJOAWyRGBTpd3winCs/document.pdf
+__2qM1Un2JWbhHIrRCV3AYAY2lHpBQFBcBghr5w54WSjg
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince

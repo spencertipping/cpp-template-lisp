@@ -1,5 +1,5 @@
 #include <iostream>
-#include "constants.h"
+#include "constants.hh"
 
 // Encoding the K combinator uniformly
 struct k {
