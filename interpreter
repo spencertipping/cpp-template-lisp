@@ -733,20 +733,21 @@ meta::cpp_section('representation', <<'__3+3jXCmg09z6YeYFJRrSiyDnWbJ7+UbflhQdW2t
   \Ref{section}{sec:metacircular}.
 __3+3jXCmg09z6YeYFJRrSiyDnWbJ7+UbflhQdW2tkB44
 
-meta::cpp_section('resources', <<'__+yj6tDGgZpVr6j1d9SrHOpH+w1bU3UJwe3Ttop1g+68');
+meta::cpp_section('resources', <<'__EgUURTEwiudOewj1glfXXJItp0qQImr3HlI6/KS/DyU');
 - Resources
   \label{sec:resources}
   This section contains extra files that are helpful for running the examples.
 
   - Makefile for examples
-    This makefile will build all of the examples. It is available in the source distribution as \verb|src/makefile|, and should be run from inside \verb|src|. Note that it requires your
-    version of \verb|gcc| to support a fairly recent C++0x draft, as specified by \verb|-std=gnu++0x|. At some point in the future I'll go back and revise the code for compatibility with the
-    C++ 98 standard to remove this restriction.
+    This makefile will build all of the examples. It is available in the source distribution as \verb|src/examples/makefile|, and should be run from inside \verb|src/examples|. Note that it
+    requires your version of \verb|gcc| to support a fairly recent C++0x draft, as specified by \verb|-std=gnu++0x|. At some point in the future I'll go back and revise the code for
+    compatibility with the C++ 98 standard to remove this restriction.
 
     :: resource name=examples/makefile
     WORKING = first-order-functions higher-order-functions indirect-functions \
               apply-two-function specialization inner-specialization fibonacci \
               fibonacci-piecewise linked-list church-lists
+
     BROKEN  = indirect-functions-broken inner-specialization-broken \
               fibonacci-piecewise-broken self-reference-broken
 
@@ -763,9 +764,9 @@ meta::cpp_section('resources', <<'__+yj6tDGgZpVr6j1d9SrHOpH+w1bU3UJwe3Ttop1g+68'
     %: %.cc
     	$(CC) $(CC_OPTS) $< -o $@ || true
     :.
-__+yj6tDGgZpVr6j1d9SrHOpH+w1bU3UJwe3Ttop1g+68
+__EgUURTEwiudOewj1glfXXJItp0qQImr3HlI6/KS/DyU
 
-meta::cpp_section('value-space', <<'__ZuIeceXSfV2xNH4kORIRr/KgdKVHAnTb49BevXKTc/s');
+meta::cpp_section('value-space', <<'__B/Tl/oOUtn02+KcPg5iS6FfVOE0ybijipoouWiulocw');
 - Metaprogramming in Value Space
   Without using any particular encoding, this section provides a few examples of template metaprogramming in action. Each example has been factored down by preprocessor macros to show the
   structure of the code. Also, these examples are not necessarily representative of best practices, nor do they scale well.
@@ -1015,7 +1016,12 @@ meta::cpp_section('value-space', <<'__ZuIeceXSfV2xNH4kORIRr/KgdKVHAnTb49BevXKTc/
                    should_be_seven::type::value << std::endl;
     }
     :.
-__ZuIeceXSfV2xNH4kORIRr/KgdKVHAnTb49BevXKTc/s
+
+    The use of \verb|cons| to represent the possible outcomes of a decisional isn't a new idea. It's key to the use of \verb|select|, which will return either \verb|head| or \verb|tail|. We
+    then apply the cons cell to that outcome to obtain the conditional result. The only problem with this approach is that both possibilities end up getting evaluated regardless of the
+    condition. So in general, church-encodings of booleans and other conditionals has the caveat that it may cause infinite recursion. Most conditionals should probably be implemented using
+    specialization (see \Ref{section}{sec:fibonacci-piecewise}) to avoid this problem.
+__B/Tl/oOUtn02+KcPg5iS6FfVOE0ybijipoouWiulocw
 
 meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
@@ -1080,9 +1086,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__NXcGNV8I5PJcSjKb7Rr12DpybFXUoanfzYD+vIFNkBs');
-/tmp/interpreter.jXL8eovflzdlnPhZapz4H86EjiCs+ZhQJDNdyhBZRIk/document.pdf
-__NXcGNV8I5PJcSjKb7Rr12DpybFXUoanfzYD+vIFNkBs
+meta::data('pdf-output-file', <<'__mzVrSi/jkavANF5FYhJea27gwhuNkbEG7Bp5ncGBYF4');
+/tmp/interpreter.0lOhXqE3dToppaIzRIsEjdgEYZQEObLmGhYMdSpLSlQ/document.pdf
+__mzVrSi/jkavANF5FYhJea27gwhuNkbEG7Bp5ncGBYF4
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
