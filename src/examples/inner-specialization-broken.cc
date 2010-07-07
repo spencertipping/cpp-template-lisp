@@ -1,5 +1,3 @@
-#warning This example is deliberately broken, so a compilation error is normal.
-
 template<class t>
 struct container {
   template<class u>

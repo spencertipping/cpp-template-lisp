@@ -346,115 +346,6 @@ unless ($settings{'name'}) {
 return $line;
 __AON9bxWzZOMpERGSJVrit8dkijYb5Re8IIg2PEC5i1s
 
-meta::cpp_section('basic-examples', <<'__FoSquLfynVHJyWtfGu+qBsA0nBTK4br3JFNLxSmmy+M');
-- Basic Metaprogramming Examples
-  Without using any particular encoding, this section provides a few examples of template metaprogramming in action. Each example has been factored down by preprocessor macros to show the
-  structure of the code. Also, these examples are not necessarily representative of best practices, nor do they scale well.
-
-  - Fibonacci numbers (explicit specialization)
-    \label{sec:fibonacci-explicit}
-    This is some metaprogramming in value-space. Constants are evaluated and folded at compile-time, so the \verb|expression| term below can be used to perform arithmetic evaluation. This
-    example defines one general form of \verb|fibonacci|, and two specific forms for an inductive process with two base cases. It also shows the lack of generality of piecewise definitions;
-    while it is possible to specify a template for given values, implementing the classic compact definition of the function:
-
-    $$ f(n) = \begin{cases} f(n-1) + f(n-2) & n \ge 2 \\
-                            n               & n <   2 \end{cases} $$
-
-    \noindent is not possible through specialization without enumerating every value of $n$ below or above 2. In this section we implement a more straightforward definition:
-
-    $$ f(n) = \begin{cases} 0               & n = 0 \\
-                            1               & n = 1 \\
-                            f(n-1) + f(n-2) & \text{otherwise} \end{cases} $$
-
-    The compact definition is possible, however. The key is to encode that condition separately and specialize on a boolean parameter. That is implemented in
-    \Ref{section}{sec:fibonacci-piecewise}.
-
-    :: cpp name=examples/fibonacci.cc
-    #include <iostream>
-
-    #define letrec(name, params, defaults, expression) \
-      template params \
-      struct name defaults { \
-        enum { value = expression }; \
-      };
-
-    #define call(name, params...) (name<params>::value)
-
-    letrec(fibonacci, <int n>, , call(fibonacci, n - 1) + call(fibonacci, n - 2))
-    letrec(fibonacci, <>, <0>, 0)
-    letrec(fibonacci, <>, <1>, 1)
-
-    int main () {
-      std::cout << "fibonacci<10>::value = " << fibonacci<10>::value << std::endl;
-    }
-    :.
-
-  - Fibonacci numbers (piecewise definition)
-    \label{sec:fibonacci-piecewise}
-    As mentioned in \Ref{section}{sec:fibonacci-explicit}, it is possible to encode the Fibonacci function using a general conditional instead of explicitly specializing the two base values of
-    0 and 1. This example doesn't motivate its full utility (better would be a densely piecewise function such as the absolute value), but you can easily extrapolate from the design pattern.
-
-    The first step is to isolate the cases. For the piecewise Fibonacci function:
-
-    $$ f(n) = \begin{cases} n               & n < 2 \\
-                            f(n-1) + f(n-2) & n \ge 2 \end{cases} $$
-
-    A boolean contains enough information to encode which branch should be taken. I'll use $n < 2$ as the predicate, so a value of \verb|true| should result in $n$ while a value of
-    \verb|false| should result in $f(n-1) + f(n-2)$.
-
-    Here is the obvious way to go about it, though it doesn't work because of mutual dependencies in the definitions:
-
-    :: cpp name=examples/fibonacci-piecewise-broken.cc
-    template <bool n_lt_2, int n>
-    struct fibonacci_case {
-      enum { value = fibonacci<n - 1>::value + fibonacci<n - 2>::value };
-    };
-
-    template <int n>
-    struct fibonacci_case <true, n> {
-      enum { value = n };
-    };
-
-    template <int n>
-    struct fibonacci {
-      enum { value = fibonacci_case<(n < 2), n>::value };
-    };
-    :.
-
-    C++ needs to know about template types before you hit them. Because there isn't a way to forward-define templates, we have to get a little bit more creative:
-
-    :: cpp name=examples/fibonacci-piecewise.cc
-    #include <iostream>
-
-    template <class f, bool n_lt_2, int n>
-    struct fibonacci_case {
-      enum { value = f::template recursive<n - 1>::value +
-                     f::template recursive<n - 2>::value };
-    };
-
-    template <class f, int n>
-    struct fibonacci_case <f, true, n> {
-      enum { value = n };
-    };
-
-    struct fibonacci_piecewise {
-      template <int n>
-      struct recursive {
-        enum { value = fibonacci_case<fibonacci_piecewise, (n < 2), n>::value };
-      };
-    };
-
-    template <int n>
-    struct fibonacci {
-      enum { value = fibonacci_piecewise::template recursive<n>::value };
-    };
-
-    int main () {
-      std::cout << "fibonacci<10>::value = " << fibonacci<10>::value << std::endl;
-    }
-    :.
-__FoSquLfynVHJyWtfGu+qBsA0nBTK4br3JFNLxSmmy+M
-
 meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI');
 - Introduction to C++ Literate Coding
   The C++ literate code interface is much like the Java one, except that code sections use the \verb|name=x| attribute rather than \verb|class=| and \verb|package=|. The name is expected to
@@ -472,7 +363,7 @@ meta::cpp_section('encodings', <<'__6zeGwKMG2D22NYnKKE6QsOZ1loGU07E97t+uSlhFAgM'
 # Attribute cpp_section::encodings
 __6zeGwKMG2D22NYnKKE6QsOZ1loGU07E97t+uSlhFAgM
 
-meta::cpp_section('introduction', <<'__78J/ZxCLQgE4ohHhzySMp4af3UHLcsd1QLZBJTU/9/g');
+meta::cpp_section('introduction', <<'__2AgvUUxVXXJJCsiFwAuXZVPmaEYpoa8wkMGaMAkns4s');
 - Introduction to Template Patterns
   \label{sec:introduction}
   Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
@@ -588,8 +479,6 @@ meta::cpp_section('introduction', <<'__78J/ZxCLQgE4ohHhzySMp4af3UHLcsd1QLZBJTU/9
     invocations are accessed as \verb|::type|. One way to go about fixing it is to make a rule that a function gets encoded a bit less directly:
 
     :: cpp name=examples/indirect-functions-broken.cc
-    #warning This example is deliberately broken, so a compilation error is normal.
-
     // Encoding the K combinator uniformly, but with compile errors
     struct k {
       template<class t>
@@ -735,8 +624,6 @@ meta::cpp_section('introduction', <<'__78J/ZxCLQgE4ohHhzySMp4af3UHLcsd1QLZBJTU/9
       is inside a class:
 
       :: cpp name=examples/inner-specialization-broken.cc
-      #warning This example is deliberately broken, so a compilation error is normal.
-
       template<class t>
       struct container {
         template<class u>
@@ -793,7 +680,7 @@ meta::cpp_section('introduction', <<'__78J/ZxCLQgE4ohHhzySMp4af3UHLcsd1QLZBJTU/9
 
       The namespace here isn't necessary, but it hides what normally gets hidden when you create an anonymous closure. Also notice that it must be declared before \verb|container| due to C++'s
       forward-reference semantics.\footnote{Despite this, template expansion is generally lazy in other ways.}
-__78J/ZxCLQgE4ohHhzySMp4af3UHLcsd1QLZBJTU/9/g
+__2AgvUUxVXXJJCsiFwAuXZVPmaEYpoa8wkMGaMAkns4s
 
 meta::cpp_section('preprocessor', <<'__TqAErsma1sPW6yJWHo2bTdNEsmbJzIFoDfrtbzx+G24');
 - Preprocessor Definitions
@@ -846,7 +733,7 @@ meta::cpp_section('representation', <<'__3+3jXCmg09z6YeYFJRrSiyDnWbJ7+UbflhQdW2t
   \Ref{section}{sec:metacircular}.
 __3+3jXCmg09z6YeYFJRrSiyDnWbJ7+UbflhQdW2tkB44
 
-meta::cpp_section('resources', <<'__nS6+h7GxqSlpl7Rl6Zyvr1bnozix/G2FQ5/VLx5D3bY');
+meta::cpp_section('resources', <<'__+yj6tDGgZpVr6j1d9SrHOpH+w1bU3UJwe3Ttop1g+68');
 - Resources
   \label{sec:resources}
   This section contains extra files that are helpful for running the examples.
@@ -859,9 +746,9 @@ meta::cpp_section('resources', <<'__nS6+h7GxqSlpl7Rl6Zyvr1bnozix/G2FQ5/VLx5D3bY'
     :: resource name=examples/makefile
     WORKING = first-order-functions higher-order-functions indirect-functions \
               apply-two-function specialization inner-specialization fibonacci \
-              fibonacci-piecewise
+              fibonacci-piecewise linked-list church-lists
     BROKEN  = indirect-functions-broken inner-specialization-broken \
-              fibonacci-piecewise-broken
+              fibonacci-piecewise-broken self-reference-broken
 
     CC      = g++
     CC_OPTS = -g -Wall -std=gnu++0x
@@ -876,23 +763,273 @@ meta::cpp_section('resources', <<'__nS6+h7GxqSlpl7Rl6Zyvr1bnozix/G2FQ5/VLx5D3bY'
     %: %.cc
     	$(CC) $(CC_OPTS) $< -o $@ || true
     :.
-__nS6+h7GxqSlpl7Rl6Zyvr1bnozix/G2FQ5/VLx5D3bY
+__+yj6tDGgZpVr6j1d9SrHOpH+w1bU3UJwe3Ttop1g+68
+
+meta::cpp_section('value-space', <<'__V8jO4ElphUpKB6r8H2UKNRTWYXJDKBCvROd5AL08lSc');
+- Metaprogramming in Value Space
+  Without using any particular encoding, this section provides a few examples of template metaprogramming in action. Each example has been factored down by preprocessor macros to show the
+  structure of the code. Also, these examples are not necessarily representative of best practices, nor do they scale well.
+
+  - Fibonacci numbers (explicit specialization)
+    \label{sec:fibonacci-explicit}
+    This is some metaprogramming in value-space. Constants are evaluated and folded at compile-time, so the \verb|expression| term below can be used to perform arithmetic evaluation. This
+    example defines one general form of \verb|fibonacci|, and two specific forms for an inductive process with two base cases. It also shows the lack of generality of piecewise definitions;
+    while it is possible to specify a template for given values, implementing the classic compact definition of the function:
+
+    $$ f(n) = \begin{cases} f(n-1) + f(n-2) & n \ge 2 \\
+                            n               & n <   2 \end{cases} $$
+
+    \noindent is not possible through specialization without enumerating every value of $n$ below or above 2. In this section we implement a more straightforward definition:
+
+    $$ f(n) = \begin{cases} 0               & n = 0 \\
+                            1               & n = 1 \\
+                            f(n-1) + f(n-2) & \text{otherwise} \end{cases} $$
+
+    The compact definition is possible, however. The key is to encode that condition separately and specialize on a boolean parameter. That is implemented in
+    \Ref{section}{sec:fibonacci-piecewise}.
+
+    :: cpp name=examples/fibonacci.cc
+    #include <iostream>
+
+    #define letrec(name, params, defaults, expression) \
+      template params \
+      struct name defaults { \
+        enum { value = expression }; \
+      };
+
+    #define call(name, params...) (name<params>::value)
+
+    letrec(fibonacci, <int n>, , call(fibonacci, n - 1) + call(fibonacci, n - 2))
+    letrec(fibonacci, <>, <0>, 0)
+    letrec(fibonacci, <>, <1>, 1)
+
+    int main () {
+      std::cout << "fibonacci<10>::value = " << fibonacci<10>::value << std::endl;
+    }
+    :.
+
+  - Fibonacci numbers (piecewise definition)
+    \label{sec:fibonacci-piecewise}
+    As mentioned in \Ref{section}{sec:fibonacci-explicit}, it is possible to encode the Fibonacci function using a general conditional instead of explicitly specializing the two base values of
+    0 and 1. This example doesn't motivate its full utility (better would be a densely piecewise function such as the absolute value), but you can easily extrapolate from the design pattern.
+
+    The first step is to isolate the cases. For the piecewise Fibonacci function:
+
+    $$ f(n) = \begin{cases} n               & n < 2 \\
+                            f(n-1) + f(n-2) & n \ge 2 \end{cases} $$
+
+    A boolean contains enough information to encode which branch should be taken. I'll use $n < 2$ as the predicate, so a value of \verb|true| should result in $n$ while a value of
+    \verb|false| should result in $f(n-1) + f(n-2)$.
+
+    Here is the obvious way to go about it, though it doesn't work because of mutual dependencies in the definitions:
+
+    :: cpp name=examples/fibonacci-piecewise-broken.cc
+    template <bool n_lt_2, int n>
+    struct fibonacci_case {
+      enum { value = fibonacci<n - 1>::value + fibonacci<n - 2>::value };
+    };
+
+    template <int n>
+    struct fibonacci_case <true, n> {
+      enum { value = n };
+    };
+
+    template <int n>
+    struct fibonacci {
+      enum { value = fibonacci_case<(n < 2), n>::value };
+    };
+    :.
+
+    C++ needs to know about template types before you hit them. Because there isn't a way to forward-define templates, we have to get a little bit more creative:
+
+    :: cpp name=examples/fibonacci-piecewise.cc
+    #include <iostream>
+
+    template <class f, bool n_lt_2, int n>
+    struct fibonacci_case {
+      enum { value = f::template recursive<n - 1>::value +
+                     f::template recursive<n - 2>::value };
+    };
+
+    template <class f, int n>
+    struct fibonacci_case <f, true, n> {
+      enum { value = n };
+    };
+
+    struct fibonacci_piecewise {
+      template <int n>
+      struct recursive {
+        enum { value = fibonacci_case<fibonacci_piecewise, (n < 2), n>::value };
+      };
+    };
+
+    template <int n>
+    struct fibonacci {
+      enum { value = fibonacci_piecewise::template recursive<n>::value };
+    };
+
+    int main () {
+      std::cout << "fibonacci<10>::value = " << fibonacci<10>::value << std::endl;
+    }
+    :.
+
+    Note the wrapping of \verb|fibonacci_piecewise::recursive|. This is necessary because within the scope of a template, the name of the templated construct refers to the specialized form,
+    not the template itself. For example:
+
+    :: cpp name=examples/self-reference-broken.cc
+    template <int n>
+    struct foo {
+      typedef foo bar;
+    };
+
+    typedef foo<10>::bar should_be_a_template;
+    typedef should_be_a_template<10> problem;
+    :.
+
+    In this example, \verb|should_be_a_template| isn't a template at all; it's the expanded form of \verb|foo|, which has already been specialized to \verb|foo<10>|. The compiler complains
+    when \verb|typedef|ing \verb|problem| because we are trying to expand something that isn't a template.
+
+    The solution is to wrap the template inside a non-template outer \verb|struct|, as the working Fibonacci example demonstrates. This enables you to refer unambiguously to the outer
+    \verb|struct| and then explicitly dereference the inner template, which will not be specialized at that point.
+
+  - Linked list
+    This is a simple model of a data structure in value-space. For scalability it would be better to use types for the head and tail, but for simplicity the example is restricted to using
+    values.
+
+    :: cpp name=examples/linked-list.cc
+    #include <iostream>
+
+    #define function(name, params, values...) \
+      template <params> \
+      struct name { \
+        enum { values }; \
+      }
+
+    // Prevents commas from separating the arguments:
+    #define q(args...) args
+    
+    function(cons, q(class X, class Y), car = X::value, cdr = Y::value);
+    function(car, class T, value = T::car);
+    function(cdr, class T, value = T::cdr);
+    function(int_wrapper, int n, value = n);
+
+    int main () {
+      std::cout << "car(cons(5, 6)) = " <<
+                   car<cons<int_wrapper<5>, int_wrapper<6>>>::value << std::endl;
+    }
+    :.
+
+  - Church-encoded lists, {\tt map}, and {\tt filter}
+    This is a more involved example that uses curried templates and a Church encoding. Note the transition between value-space and type-space achieved by using \verb|select|. \verb|select|
+    effectively serves as a map from \verb|bool| to either \verb|head| or \verb|tail|.
+
+    :: cpp name=examples/church-lists.cc
+    #include <iostream>
+
+    #define fn(args...)        template <args> struct
+    #define lambda(args...)    template <args> struct apply
+
+    #define lift(name, xs...)  template <xs> class name
+    #define call(v, xs...)     typename v::template apply<xs>::type
+
+    #define let(var, value...) private: typedef value var
+    #define ret(value...)      public:  typedef value type
+    #define val(e)             public:  struct type { enum { value = e }; }
+
+    struct head {lambda(class h, class t) {ret(h);};};
+    struct tail {lambda(class h, class t) {ret(t);};};
+
+    namespace _select {
+      lambda(bool b)   {ret(head);};
+      lambda() <false> {ret(tail);};
+    }
+
+    struct select {
+      lambda(class t) {ret(call(_select, t::type::value));};
+    };
+
+    fn(class h, class t) cons {
+      lambda(class f) {
+        ret(call(f, h, t));
+      };
+    };
+
+    struct nil {
+      typedef int type;
+    };
+
+    struct map {
+      lambda(class f, class cell) {
+        let(mapped_head, call(f, call(cell, head)));
+        let(mapped_tail, call(map, f, call(cell, tail)));
+        ret(cons<mapped_head, mapped_tail>);
+      };
+
+      lambda(class f) <f, nil> {
+        ret(nil);
+      };
+    };
+
+    struct filter {
+      lambda(class f, class cell) {
+        let(h,             call(cell, head));
+        let(filtered_tail, call(filter, f, call(cell, tail)));
+        let(choices,       cons<cons<h, filtered_tail>, filtered_tail>);
+        let(selector,      call(select, call(f, h)));
+
+        ret(call(choices, selector));
+      };
+
+      lambda(class f) <f, nil> {
+        ret(nil);
+      };
+    };
+
+    fn(int n) int_wrap {
+      val(n);
+    };
+
+    fn(class x) plus {
+      lambda(class y) {
+        val(x::type::value + y::type::value);
+      };
+    };
+
+    fn(int n) is_divisible_by {
+      lambda(class x) {
+        val(x::type::value % n == 0);
+      };
+    };
+
+    int main () {
+      typedef cons<int_wrap<5>, cons<int_wrap<6>, nil>>      the_list;
+      typedef plus<int_wrap<6>>                              the_function;
+      typedef is_divisible_by<3>                             the_criterion;
+      typedef filter::apply<the_criterion, the_list>::type   the_short_list;
+      typedef map::apply<the_function, the_short_list>::type the_result;
+      typedef the_result::apply<head>                        should_be_seven;
+
+      std::cout << "head(map(x -> x + 6, filter(x % 3 == 0, list(5, 6)))) = " <<
+                   should_be_seven::type::value << std::endl;
+    }
+    :.
+__V8jO4ElphUpKB6r8H2UKNRTWYXJDKBCvROd5AL08lSc
 
 meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
 __zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc
 
-meta::data('document', <<'__2mlm0tAR8LZCPCFXhYYsb92HH9TZgErwVHKlf9rQej0');
+meta::data('document', <<'__xNJ5t9Yd7bKYybO37rmxklHnFN843gWjRpRLvvPS16g');
 = C++ Template Lisp Interpreter
 a Spencer Tipping
 begin
 
 %section(cpp_section::introduction)
-%section(cpp_section::basic-examples)
+%section(cpp_section::value-space)
 %section(cpp_section::representation)
 %section(cpp_section::preprocessor)
 %section(cpp_section::resources)
-__2mlm0tAR8LZCPCFXhYYsb92HH9TZgErwVHKlf9rQej0
+__xNJ5t9Yd7bKYybO37rmxklHnFN843gWjRpRLvvPS16g
 
 meta::data('header', <<'__HlC/zSnFNAXNbuJ/z8ZYgHsD5DWMisPBSt/xyoy+0cw');
 \documentclass{article}
@@ -941,9 +1078,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__wYDLbuaWZw2wytewHA9Kgny0Hr++po8CMw22g7Fiu0o');
-/tmp/interpreter.SkI6qofNT5CVGZoEceC+zAlugr9XIh-mHSlrv8E1hqU/document.pdf
-__wYDLbuaWZw2wytewHA9Kgny0Hr++po8CMw22g7Fiu0o
+meta::data('pdf-output-file', <<'__42ntMiwylWPD0Wu0oDPMkkab6WF/gqenhbvVeO16Ctc');
+/tmp/interpreter.uhG-3n8rgOfg2SoxdpHpBuPW5ljxnr0SlQRiwqYiWO0/document.pdf
+__42ntMiwylWPD0Wu0oDPMkkab6WF/gqenhbvVeO16Ctc
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince

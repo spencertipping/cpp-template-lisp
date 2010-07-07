@@ -1,3 +1,5 @@
+#include <iostream>
+
 #define fn(args...)        template <args> struct
 #define lambda(args...)    template <args> struct apply
 
@@ -73,15 +75,14 @@ fn(int n) is_divisible_by {
   };
 };
 
-#include <iostream>
-
 int main () {
-  typedef cons<int_wrap<5>, cons<int_wrap<6>, nil> >     the_list;
-  typedef plus<int_wrap<6> >                             the_function;
+  typedef cons<int_wrap<5>, cons<int_wrap<6>, nil>>      the_list;
+  typedef plus<int_wrap<6>>                              the_function;
   typedef is_divisible_by<3>                             the_criterion;
   typedef filter::apply<the_criterion, the_list>::type   the_short_list;
   typedef map::apply<the_function, the_short_list>::type the_result;
   typedef the_result::apply<head>                        should_be_seven;
 
-  std::cout << should_be_seven::type::value << std::endl;
+  std::cout << "head(map(x -> x + 6, filter(x % 3 == 0, list(5, 6)))) = " <<
+               should_be_seven::type::value << std::endl;
 }
