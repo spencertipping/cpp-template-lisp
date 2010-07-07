@@ -346,7 +346,7 @@ unless ($settings{'name'}) {
 return $line;
 __AON9bxWzZOMpERGSJVrit8dkijYb5Re8IIg2PEC5i1s
 
-meta::cpp_section('basic-examples', <<'__iBA5dPZPC4ZJ/5FRaJeya3BMc7J+6djHjuQi4TLESAU');
+meta::cpp_section('basic-examples', <<'__FoSquLfynVHJyWtfGu+qBsA0nBTK4br3JFNLxSmmy+M');
 - Basic Metaprogramming Examples
   Without using any particular encoding, this section provides a few examples of template metaprogramming in action. Each example has been factored down by preprocessor macros to show the
   structure of the code. Also, these examples are not necessarily representative of best practices, nor do they scale well.
@@ -399,8 +399,8 @@ meta::cpp_section('basic-examples', <<'__iBA5dPZPC4ZJ/5FRaJeya3BMc7J+6djHjuQi4TL
     $$ f(n) = \begin{cases} n               & n < 2 \\
                             f(n-1) + f(n-2) & n \ge 2 \end{cases} $$
 
-    In this case a boolean contains enough information to encode the case. I'll use $n < 2$ as the predicate, so a value of \verb|true| should result in $n$ while a value of \verb|false|
-    should result in $f(n-1) + f(n-2)$.
+    A boolean contains enough information to encode which branch should be taken. I'll use $n < 2$ as the predicate, so a value of \verb|true| should result in $n$ while a value of
+    \verb|false| should result in $f(n-1) + f(n-2)$.
 
     Here is the obvious way to go about it, though it doesn't work because of mutual dependencies in the definitions:
 
@@ -453,7 +453,7 @@ meta::cpp_section('basic-examples', <<'__iBA5dPZPC4ZJ/5FRaJeya3BMc7J+6djHjuQi4TL
       std::cout << "fibonacci<10>::value = " << fibonacci<10>::value << std::endl;
     }
     :.
-__iBA5dPZPC4ZJ/5FRaJeya3BMc7J+6djHjuQi4TLESAU
+__FoSquLfynVHJyWtfGu+qBsA0nBTK4br3JFNLxSmmy+M
 
 meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI');
 - Introduction to C++ Literate Coding
@@ -941,9 +941,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__H42ulB24oc5njRD3pOzKWHtDran3ctviZyA7uDyFpOU');
-/tmp/interpreter.jVbFkCQQY3urYY1RIx2+Bt7NHfwNU1l2nXSUJBmEe+Y/document.pdf
-__H42ulB24oc5njRD3pOzKWHtDran3ctviZyA7uDyFpOU
+meta::data('pdf-output-file', <<'__wYDLbuaWZw2wytewHA9Kgny0Hr++po8CMw22g7Fiu0o');
+/tmp/interpreter.SkI6qofNT5CVGZoEceC+zAlugr9XIh-mHSlrv8E1hqU/document.pdf
+__wYDLbuaWZw2wytewHA9Kgny0Hr++po8CMw22g7Fiu0o
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
