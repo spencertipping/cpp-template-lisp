@@ -722,7 +722,7 @@ meta::cpp_section('introduction', <<'__36lFNhCinAJc2hlpemtaX2ZxHW/pZ5qFDb/SlqXBE
       forward-reference semantics.\footnote{Despite this, template expansion is generally lazy in other ways.}
 __36lFNhCinAJc2hlpemtaX2ZxHW/pZ5qFDb/SlqXBEVM
 
-meta::cpp_section('preprocessor', <<'__TXIgGK82FaYney05cOOJyBQEMOG+rQSIrns17CZlcZc');
+meta::cpp_section('preprocessor', <<'__VfRFA0Yt3Ba0czpsWlZsv/6I3Cl1PF+Q2KjNMncmmOs');
 - Preprocessor Definitions
   \label{sec:preprocessor-definitions}
   The goal of this section is to implement a layer of abstraction over the base template constructs. Roughly, the operations are:
@@ -913,6 +913,20 @@ meta::cpp_section('preprocessor', <<'__TXIgGK82FaYney05cOOJyBQEMOG+rQSIrns17CZlc
     \noindent however C++ doesn't allow you to define inner \verb|struct|s after the fact.\footnote{While it might allow a forward definition for a normal {\tt struct}, this isn't possible for
     a templated {\tt struct}, so we're back to square one.}
 
+    Here's a shot in the dark:
+
+    :: cpp name=preprocessor/defun.hh
+    #ifndef LISP_PREPROCESSOR_DEFUN_ENABLED
+    #  define LISP_PREPROCESSOR_DEFUN_ENABLED
+    #  define defun(name, params...) \
+         def(name) {typedef name##_apply apply;}; \
+         template<params> struct name##_apply
+    #  define local_defun(name, params...) \
+         local_def(name) {typedef name##_apply apply;}; \
+         template<params> struct name##_apply
+    #endif
+    :.
+
   - Preprocessor interface
     \label{sec:preprocessor-interface}
     Rather than using the files above, it's better to include these header files to enable or disable the preprocessor macros.
@@ -960,7 +974,7 @@ meta::cpp_section('preprocessor', <<'__TXIgGK82FaYney05cOOJyBQEMOG+rQSIrns17CZlc
     }
     #include "preprocessor-disable.hh"
     :.
-__TXIgGK82FaYney05cOOJyBQEMOG+rQSIrns17CZlcZc
+__VfRFA0Yt3Ba0czpsWlZsv/6I3Cl1PF+Q2KjNMncmmOs
 
 meta::cpp_section('resources', <<'__1OSnhHIgmujRK2Yo5xQy10wNNh3XGEOAYTmVJVTiCS0');
 - Resources
@@ -1018,7 +1032,7 @@ meta::cpp_section('resources', <<'__1OSnhHIgmujRK2Yo5xQy10wNNh3XGEOAYTmVJVTiCS0'
     :.
 __1OSnhHIgmujRK2Yo5xQy10wNNh3XGEOAYTmVJVTiCS0
 
-meta::cpp_section('tests', <<'__97v2I1aFV48+9Pp4gcjI9u7ig5CRXPgAimrokiJaB0g');
+meta::cpp_section('tests', <<'__QYN92TVFqBLkeTe26gl2jaUVpp09dvRbD3WonT1czYA');
 - Unit and Integration Tests
   This section defines a basic unit and integration test library with assertions to test equality of expressions in type-space.\footnote{Since value-dependent types are pure with respect to
   values, and values are pure with respect to types, this is sufficient to test static values contained within those types as well.} It defines some macros that make it very easy to write
@@ -1076,7 +1090,6 @@ meta::cpp_section('tests', <<'__97v2I1aFV48+9Pp4gcjI9u7ig5CRXPgAimrokiJaB0g');
     #ifndef UNIT_TEST_HH
     #define UNIT_TEST_HH
 
-    #include "core.hh"
     #include "preprocessor-enable.hh"
 
     #include "unit/type-equivalence.hh"
@@ -1094,7 +1107,7 @@ meta::cpp_section('tests', <<'__97v2I1aFV48+9Pp4gcjI9u7ig5CRXPgAimrokiJaB0g');
 
     #endif
     :.
-__97v2I1aFV48+9Pp4gcjI9u7ig5CRXPgAimrokiJaB0g
+__QYN92TVFqBLkeTe26gl2jaUVpp09dvRbD3WonT1czYA
 
 meta::cpp_section('value-space', <<'__VXN1jkOa9voMVMDxjWV3BBEugkXKkypIxjzx3L48eu0');
 - Metaprogramming in Value Space
@@ -1417,9 +1430,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__hG+nCYog1XrapO3vTgx0TiVGEnH/YD4GFM3uTdpEjb8');
-/tmp/interpreter.GyidWuWAedSxDiCdRxXTDuj6InOnyU5BkEnbpvvhzxo/document.pdf
-__hG+nCYog1XrapO3vTgx0TiVGEnH/YD4GFM3uTdpEjb8
+meta::data('pdf-output-file', <<'__B060UscZqlVj9zZGAMv6ShFt0KaL+yE9vns0ZipZWU8');
+/tmp/interpreter.EzDm1Pu77W1gyujLHbNlkjJnNZhB27ZoS9S6XFOsNbo/document.pdf
+__B060UscZqlVj9zZGAMv6ShFt0KaL+yE9vns0ZipZWU8
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince

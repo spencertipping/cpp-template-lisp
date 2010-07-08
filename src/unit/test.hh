@@ -1,7 +1,6 @@
 #ifndef UNIT_TEST_HH
 #define UNIT_TEST_HH
 
-#include "core.hh"
 #include "preprocessor-enable.hh"
 
 #include "unit/type-equivalence.hh"
