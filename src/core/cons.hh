@@ -9,6 +9,11 @@ defun(cons, class h, class t) {
   };
   ret(closure);
 };
+
+defun(head, class h, class t) {ret(h);};
+defun(tail, class h, class t) {ret(t);};
+
+def(nil) {};
 #include LISP_END_CORE_MODULE()
 
 #endif
