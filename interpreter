@@ -346,7 +346,7 @@ unless ($settings{'name'}) {
 return $line;
 __AON9bxWzZOMpERGSJVrit8dkijYb5Re8IIg2PEC5i1s
 
-meta::cpp_section('beta', <<'__v6pIzEGPgn/w625CCVpUy6RmkXs8PnmPr15dfysLKcw');
+meta::cpp_section('beta', <<'__nsmRmSrs08aLtfTsq9zMn3HBOc9SXg01Xx68Smc/foo');
 - $\beta$-Rewrite Representation
   This section outlines the conversion process from a simple $\beta$-rewrite calculus to template metaprogramming constructs. This rewrite system then is combined with an \verb|eval| function
   to form the basis for the metacircular interpreter defined in \Ref{section}{sec:metacircular}.
@@ -367,11 +367,27 @@ meta::cpp_section('beta', <<'__v6pIzEGPgn/w625CCVpUy6RmkXs8PnmPr15dfysLKcw');
       };
       ret(closure);
     };
+
+    defun(head, class h, class t) {ret(h);};
+    defun(tail, class h, class t) {ret(t);};
+
+    def(nil) {};
     #include LISP_END_CORE_MODULE()
 
     #endif
     :.
-__v6pIzEGPgn/w625CCVpUy6RmkXs8PnmPr15dfysLKcw
+
+    :: cpp name=tests/core/cons.cc
+    #include "unit-test.hh"
+
+    deftest(cons_instantiation) {
+      let(foo,  call(cons, n<5>, n<6>));
+      let(five, call(head, foo));
+      let(six,  call(tail, foo));
+      
+    };
+    :.
+__nsmRmSrs08aLtfTsq9zMn3HBOc9SXg01Xx68Smc/foo
 
 meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI');
 - Introduction to C++ Literate Coding
