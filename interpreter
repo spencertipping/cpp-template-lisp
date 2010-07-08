@@ -1064,7 +1064,7 @@ meta::cpp_section('resources', <<'__1OSnhHIgmujRK2Yo5xQy10wNNh3XGEOAYTmVJVTiCS0'
     :.
 __1OSnhHIgmujRK2Yo5xQy10wNNh3XGEOAYTmVJVTiCS0
 
-meta::cpp_section('tests', <<'__Nt+iaLlyC/K3V+PEyKiEwLsSzkWmehxd+UQ4muTeS/E');
+meta::cpp_section('tests', <<'__snHTu+mlsP5gHXKfQ7SbtkqghsJufEbbZds7Utnbp4k');
 - Unit and Integration Tests
   This section defines a basic unit and integration test library with assertions to test equality of expressions in type-space.\footnote{Since value-dependent types are pure with respect to
   values, and values are pure with respect to types, this is sufficient to test static values contained within those types as well.} It defines some macros that make it very easy to write
@@ -1087,9 +1087,17 @@ meta::cpp_section('tests', <<'__Nt+iaLlyC/K3V+PEyKiEwLsSzkWmehxd+UQ4muTeS/E');
       c2 the_right_hand_side_;
 
     public:
-      void when_testing_assignability () {
-        the_left_hand_side_ = the_right_hand_side_;
-        the_right_hand_side_ = the_left_hand_side_;
+      type_equality_assertion_failed_ () {
+        when_testing_assignability (the_right_hand_side_);
+        when_testing_assignability (the_left_hand_side_, false);
+      }
+
+      void when_testing_assignability (c1 c) {
+        the_left_hand_side_ = c;
+      }
+
+      void when_testing_assignability (c2 c, bool b) {
+        the_right_hand_side_ = c;
       }
     };
 
@@ -1106,7 +1114,7 @@ meta::cpp_section('tests', <<'__Nt+iaLlyC/K3V+PEyKiEwLsSzkWmehxd+UQ4muTeS/E');
 
     #define assert_types_equal_with_name(name, types...) \
       typedef ::lisp::unit::type_equality_assertion_failed_<types> name; \
-      static name symbol_concat(type_equality_check_var_, __LINE__);
+      name symbol_concat(type_equality_check_var_, __LINE__);
 
     #endif
     :.
@@ -1176,7 +1184,7 @@ meta::cpp_section('tests', <<'__Nt+iaLlyC/K3V+PEyKiEwLsSzkWmehxd+UQ4muTeS/E');
 
     #endif
     :.
-__Nt+iaLlyC/K3V+PEyKiEwLsSzkWmehxd+UQ4muTeS/E
+__snHTu+mlsP5gHXKfQ7SbtkqghsJufEbbZds7Utnbp4k
 
 meta::cpp_section('value-space', <<'__VXN1jkOa9voMVMDxjWV3BBEugkXKkypIxjzx3L48eu0');
 - Metaprogramming in Value Space
@@ -1499,9 +1507,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__UoY3UOT42o4dZQdfOsdUUCIygfaUZTSi1rkV35VQX/M');
-/tmp/interpreter.CMdmUGmD+c48boL1JlrEpMhmr29Tn3od+8qlL6MocQo/document.pdf
-__UoY3UOT42o4dZQdfOsdUUCIygfaUZTSi1rkV35VQX/M
+meta::data('pdf-output-file', <<'__bVVbBQSknT1qBFtC2Cpru7Yh53xmGOTnCDHw0UEAaKQ');
+/tmp/interpreter.vtj+xs033czFXQGgG3mBHEm4Nzc6DCNkCYH2XyBeY1I/document.pdf
+__bVVbBQSknT1qBFtC2Cpru7Yh53xmGOTnCDHw0UEAaKQ
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
