@@ -18,8 +18,12 @@ class type_equality_assertion_failed_ {
 }
 }
 
+// The definition of symbol_concat is basically the same as BOOST_JOIN.
+#define symbol_concat(x, y) symbol_concat_aux(x, y)
+#define symbol_concat_aux(x, y) x ## y
+
 #define assert_types_equal(types...) \
-  typedef ::lisp::unit::type_equality_assertion_failed_<types...> \
-          type_equality_check_##__LINE__;
+  typedef ::lisp::unit::type_equality_assertion_failed_<types> \
+          symbol_concat(type_equality_check_, __LINE__);
 
 #endif
