@@ -9,6 +9,7 @@ class type_equality_assertion_failed_ {
   c1 the_left_hand_side_;
   c2 the_right_hand_side_;
 
+public:
   void when_testing_assignability () {
     the_left_hand_side_ = the_right_hand_side_;
     the_right_hand_side_ = the_left_hand_side_;
@@ -23,7 +24,11 @@ class type_equality_assertion_failed_ {
 #define symbol_concat_aux(x, y) x ## y
 
 #define assert_types_equal(types...) \
-  typedef ::lisp::unit::type_equality_assertion_failed_<types> \
-          symbol_concat(type_equality_check_, __LINE__);
+  assert_types_equal_with_name( \
+    symbol_concat(type_equality_check_, __LINE__), types)
+
+#define assert_types_equal_with_name(name, types...) \
+  typedef ::lisp::unit::type_equality_assertion_failed_<types> name; \
+  static name symbol_concat(type_equality_check_var_, __LINE__);
 
 #endif

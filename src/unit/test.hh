@@ -6,6 +6,10 @@
 #include "unit/type-equivalence.hh"
 #include "unit/deftest.hh"
 
+int main () {
+  return 0;
+}
+
 namespace lisp {
 namespace unit {
 namespace defined_tests {
