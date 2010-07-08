@@ -1,4 +1,4 @@
-UNIT        = cons-test
+UNIT        = core/cons
 INTEGRATION =
 
 BASE_DIR    = ../

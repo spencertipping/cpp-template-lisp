@@ -5,7 +5,7 @@ WORKING  = first-order-functions higher-order-functions indirect-functions \
 BROKEN   = indirect-functions-broken inner-specialization-broken \
            fibonacci-piecewise-broken self-reference-broken
 
-BASE_DIR = ../
+BASE_DIR = ../../
 CC       = g++
 CC_OPTS  = -g -Wall -std=gnu++0x -I$(BASE_DIR)
 

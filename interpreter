@@ -346,7 +346,7 @@ unless ($settings{'name'}) {
 return $line;
 __AON9bxWzZOMpERGSJVrit8dkijYb5Re8IIg2PEC5i1s
 
-meta::cpp_section('beta', <<'__nsmRmSrs08aLtfTsq9zMn3HBOc9SXg01Xx68Smc/foo');
+meta::cpp_section('beta', <<'__SrKu1cDcKRUX7g9SZFUDqS7TE8HHND4coME7Tzx5luE');
 - $\beta$-Rewrite Representation
   This section outlines the conversion process from a simple $\beta$-rewrite calculus to template metaprogramming constructs. This rewrite system then is combined with an \verb|eval| function
   to form the basis for the metacircular interpreter defined in \Ref{section}{sec:metacircular}.
@@ -359,8 +359,7 @@ meta::cpp_section('beta', <<'__nsmRmSrs08aLtfTsq9zMn3HBOc9SXg01Xx68Smc/foo');
     #ifndef CORE_CONS_HH
     #define CORE_CONS_HH
 
-    #include "core.hh"
-    #include LISP_BEGIN_CORE_MODULE()
+    #include "module-begin.hh"
     defun(cons, class h, class t) {
       local_defun(closure, class f) {
         ret(call(f, h, t));
@@ -372,22 +371,26 @@ meta::cpp_section('beta', <<'__nsmRmSrs08aLtfTsq9zMn3HBOc9SXg01Xx68Smc/foo');
     defun(tail, class h, class t) {ret(t);};
 
     def(nil) {};
-    #include LISP_END_CORE_MODULE()
+    #include "module-end.hh"
 
     #endif
     :.
 
     :: cpp name=tests/core/cons.cc
-    #include "unit-test.hh"
+    #include "core/cons.hh"
+    #include "unit/test.hh"
 
     deftest(cons_instantiation) {
-      let(foo,  call(cons, n<5>, n<6>));
+      let(foo,  call(cons, n(5), n(6)));
       let(five, call(head, foo));
       let(six,  call(tail, foo));
-      
+
+      assert_types_equal(five, n(5));
+      assert_types_equal(six,  n(6));
+      assert_types_equal(foo,  cons(n(5), n(6)));
     };
     :.
-__nsmRmSrs08aLtfTsq9zMn3HBOc9SXg01Xx68Smc/foo
+__SrKu1cDcKRUX7g9SZFUDqS7TE8HHND4coME7Tzx5luE
 
 meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI');
 - Introduction to C++ Literate Coding
@@ -402,7 +405,7 @@ meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXb
   :.
 __dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI
 
-meta::cpp_section('introduction', <<'__sNCvfcbHyZmCPQVmc4GGRw4rEnB6Dx95myURjBJ9yAE');
+meta::cpp_section('introduction', <<'__36lFNhCinAJc2hlpemtaX2ZxHW/pZ5qFDb/SlqXBEVM');
 - Introduction to Template Patterns
   \label{sec:introduction}
   Template expansion provides a pure untyped lambda calculus. All equality is extensional and the calculus supports higher-order functions (templates) with annotations at invocation, but not
@@ -446,8 +449,6 @@ meta::cpp_section('introduction', <<'__sNCvfcbHyZmCPQVmc4GGRw4rEnB6Dx95myURjBJ9y
     };
 
     // Defining a global constant identity_result = bar(also_foo)
-    // This is analogous to the code 'let identity_result = bar also_foo'
-    // in Haskell.
     typedef bar<also_foo>::type identity_result;
 
     int main () {
@@ -460,7 +461,7 @@ meta::cpp_section('introduction', <<'__sNCvfcbHyZmCPQVmc4GGRw4rEnB6Dx95myURjBJ9y
     }
     :.
 
-    In practice there is some difficulty already. Notice the use of \verb|::type| to retrieve the value of a function application. This slot had to be assumed by the caller; it is analogous to
+    In practice there is some difficulty already. Notice the use of \verb|::type| to retrieve the value of a function application. This slot had to be assumed by the caller; it is similar to
     JavaScript code like this:
 
     :: resource name=examples/introduction/unfriendly-identity.js
@@ -719,9 +720,9 @@ meta::cpp_section('introduction', <<'__sNCvfcbHyZmCPQVmc4GGRw4rEnB6Dx95myURjBJ9y
 
       The namespace here isn't necessary, but it hides what normally gets hidden when you create an anonymous closure. Also notice that it must be declared before \verb|container| due to C++'s
       forward-reference semantics.\footnote{Despite this, template expansion is generally lazy in other ways.}
-__sNCvfcbHyZmCPQVmc4GGRw4rEnB6Dx95myURjBJ9yAE
+__36lFNhCinAJc2hlpemtaX2ZxHW/pZ5qFDb/SlqXBEVM
 
-meta::cpp_section('preprocessor', <<'__bmpC3arZlNIX+B+meDK7rQvqOAyXG3XN3szOCsIp88k');
+meta::cpp_section('preprocessor', <<'__TXIgGK82FaYney05cOOJyBQEMOG+rQSIrns17CZlcZc');
 - Preprocessor Definitions
   \label{sec:preprocessor-definitions}
   The goal of this section is to implement a layer of abstraction over the base template constructs. Roughly, the operations are:
@@ -762,6 +763,41 @@ meta::cpp_section('preprocessor', <<'__bmpC3arZlNIX+B+meDK7rQvqOAyXG3XN3szOCsIp8
 
     This will preserve the commas in the original expression, although its use may be limited to the GNU preprocessor.\footnote{A more standard way to do this is to use the {\tt
     \_\_VA\_ARGS\_\_} builtin and an anonymous ellipsis.}
+
+    Another limitation has to do with brace matching. In order to write syntax in a natural way, it is helpful to write macros that behave more or less with standard C syntax; that is, the
+    block occurs after the macro invocation:
+
+    ::
+    macro_invocation(x, y, z) { block }
+    :.
+
+    However, a problem arises when the macro is responsible for expanding two sets of braces, as might be the case for a nested \verb|struct|:
+
+    ::
+    // Need to generate this code:
+    struct foo {
+      struct bar { stuff };
+    };
+
+    // This macro definition won't do it:
+    #define generate() \
+      struct foo { \
+        struct bar
+
+    // This code:
+    generate() {
+      stuff
+    };
+
+    // Expands to this:
+    struct foo {
+      struct bar {
+        stuff
+      };
+          // <- No closing brace!
+    :.
+
+    However, certain cases where this would have been used can be worked around. It comes into play when defining templates as functions; see \Ref{section}{sec:defun}.
 
   - Global constants
     \label{sec:global-definitions}
@@ -848,6 +884,7 @@ meta::cpp_section('preprocessor', <<'__bmpC3arZlNIX+B+meDK7rQvqOAyXG3XN3szOCsIp8
     :.
 
   - Defining and returning closures
+    \label{sec:defun}
     It is fairly simple to return a closure. The idea is that you create a local named function and then return that by name, so to implement the K combinator, for example, you would do
     something like this:
 
@@ -865,21 +902,16 @@ meta::cpp_section('preprocessor', <<'__bmpC3arZlNIX+B+meDK7rQvqOAyXG3XN3szOCsIp8
     };
     :.
 
-    However, that's a bulky representation given that no explicit specialization is occurring. To inline the function definitions, this form can be used instead:
+    However, that's a bulky representation given that no explicit specialization is occurring. It would be tempting to implement a \verb|defun| macro like this:
 
-    :: cpp name=preprocessor/defun.hh
-    #ifdef LISP_PREPROCESSOR_DEFINE
-    #  define LISP_PREPROCESSOR_DEFUN_ENABLED
-    #  define defun(name, params...)       def(name) {}; \
-                                           template<params...> struct name::apply
-    #  define local_defun(name, params...) local_def(name) {}; \
-                                           template<params...> struct name::apply
-    #else
-    #  undef  LISP_PREPROCESSOR_DEFUN_ENABLED
-    #  undef  defun
-    #  undef  local_defun
-    #endif
+    ::
+    #define defun(name, params...) \
+      def(name) {}; \
+      template<params> struct name::apply
     :.
+
+    \noindent however C++ doesn't allow you to define inner \verb|struct|s after the fact.\footnote{While it might allow a forward definition for a normal {\tt struct}, this isn't possible for
+    a templated {\tt struct}, so we're back to square one.}
 
   - Preprocessor interface
     \label{sec:preprocessor-interface}
@@ -911,39 +943,26 @@ meta::cpp_section('preprocessor', <<'__bmpC3arZlNIX+B+meDK7rQvqOAyXG3XN3szOCsIp8
     :.
 
   - Core interface
-    This header contains some definitions that abstract away details of writing modules. It uses the macro-expanded \verb|#include|s used throughout the Boost library source code, which
-    indicates that the header file is intended to be included multiple times.
-
-    :: cpp name=core.hh
-    #ifndef CORE_HH
-    #define CORE_HH
-
-    #define LISP_BEGIN_MODULE "preprocessor/module-begin.hh"
-    #define LISP_END_MODULE   "preprocessor/module-end.hh"
-
-    #endif
-    :.
-
-    Below are the two auxiliary files referenced above. Inside modules the preprocessor macros are enabled, and outside they are disabled. The usage generally looks like this:
+    These headers contain things to abstract away the process of defining modules. Usage is like this:
 
     ::
-    #include LISP_BEGIN_MODULE()
+    #include "module-begin.h"
     // module code
-    #include LISP_END_MODULE()
+    #include "module-end.h"
     :.
 
-    :: cpp name=preprocessor/module-begin.hh
+    :: cpp name=module-begin.hh
     #include "preprocessor-enable.hh"
     namespace lisp {
     :.
 
-    :: cpp name=preprocessor/module-end.hh
+    :: cpp name=module-end.hh
     }
     #include "preprocessor-disable.hh"
     :.
-__bmpC3arZlNIX+B+meDK7rQvqOAyXG3XN3szOCsIp88k
+__TXIgGK82FaYney05cOOJyBQEMOG+rQSIrns17CZlcZc
 
-meta::cpp_section('resources', <<'__bfyS0axu6y0to3Hv6X6rMxyPQSC4ntci4aIU0pGIZ0w');
+meta::cpp_section('resources', <<'__1OSnhHIgmujRK2Yo5xQy10wNNh3XGEOAYTmVJVTiCS0');
 - Resources
   \label{sec:resources}
   This section contains extra files that are helpful for running the examples. Note that this library requires your version of \verb|gcc| to support a fairly recent C++0x draft, as specified
@@ -961,7 +980,7 @@ meta::cpp_section('resources', <<'__bfyS0axu6y0to3Hv6X6rMxyPQSC4ntci4aIU0pGIZ0w'
     BROKEN   = indirect-functions-broken inner-specialization-broken \
                fibonacci-piecewise-broken self-reference-broken
 
-    BASE_DIR = ../
+    BASE_DIR = ../../
     CC       = g++
     CC_OPTS  = -g -Wall -std=gnu++0x -I$(BASE_DIR)
 
@@ -981,7 +1000,7 @@ meta::cpp_section('resources', <<'__bfyS0axu6y0to3Hv6X6rMxyPQSC4ntci4aIU0pGIZ0w'
     \verb|src/tests|.
 
     :: resource name=tests/makefile
-    UNIT        = cons-test
+    UNIT        = core/cons
     INTEGRATION =
 
     BASE_DIR    = ../
@@ -997,7 +1016,85 @@ meta::cpp_section('resources', <<'__bfyS0axu6y0to3Hv6X6rMxyPQSC4ntci4aIU0pGIZ0w'
     %: %.cc
     	$(CC) $(CC_OPTS) $< -o $@ || true
     :.
-__bfyS0axu6y0to3Hv6X6rMxyPQSC4ntci4aIU0pGIZ0w
+__1OSnhHIgmujRK2Yo5xQy10wNNh3XGEOAYTmVJVTiCS0
+
+meta::cpp_section('tests', <<'__97v2I1aFV48+9Pp4gcjI9u7ig5CRXPgAimrokiJaB0g');
+- Unit and Integration Tests
+  This section defines a basic unit and integration test library with assertions to test equality of expressions in type-space.\footnote{Since value-dependent types are pure with respect to
+  values, and values are pure with respect to types, this is sufficient to test static values contained within those types as well.} It defines some macros that make it very easy to write
+  tests, and enables the preprocessor macros defined in \Ref{section}{sec:preprocessor-definitions}.
+
+  - Type equivalence
+    A good approximation for type equivalence is whether a container expanded with one type is assignable to that container expanded with another type (and vice versa, to cover any
+    co/contravariance). This should capture the extensionality of type equivalence without admitting any possibilities that are substantially different.
+
+    :: cpp name=unit/type-equivalence.hh
+    #ifndef UNIT_TYPE_EQUIVALENCE_HH
+    #define UNIT_TYPE_EQUIVALENCE_HH
+
+    namespace lisp {
+    namespace unit {
+
+    template <class c1, class c2>
+    class type_equality_assertion_failed_ {
+      c1 the_left_hand_side_;
+      c2 the_right_hand_side_;
+
+      void when_testing_assignability () {
+        the_left_hand_side_ = the_right_hand_side_;
+        the_right_hand_side_ = the_left_hand_side_;
+      }
+    };
+
+    }
+    }
+
+    #define assert_types_equal(types...) \
+      typedef ::lisp::unit::type_equality_assertion_failed_<types...> \
+              type_equality_check_##__LINE__;
+
+    #endif
+    :.
+
+  - {\tt deftest}
+    This is a quick way to create a scope for running unit tests. The semantic is just like \verb|def()| from \Ref{section}{sec:global-definitions}, except that the result is placed in the
+    namespace \verb|::lisp::unit::defined_tests| to avoid collision.
+
+    :: cpp name=unit/deftest.hh
+    #ifndef UNIT_DEFTEST_HH
+    #define UNIT_DEFTEST_HH
+
+    #define deftest(name) struct ::lisp::unit::defined_tests::name
+
+    #endif
+    :.
+
+  - Test definitions
+    Unit tests should have minimal boilerplate, ideally just one \verb|#include|. This header takes care of importing all of the stuff that would otherwise be test boilerplate.
+
+    :: cpp name=unit/test.hh
+    #ifndef UNIT_TEST_HH
+    #define UNIT_TEST_HH
+
+    #include "core.hh"
+    #include "preprocessor-enable.hh"
+
+    #include "unit/type-equivalence.hh"
+    #include "unit/deftest.hh"
+
+    namespace lisp {
+    namespace unit {
+    namespace defined_tests {
+    }
+    }
+    }
+
+    using namespace lisp;
+    using namespace lisp::unit;
+
+    #endif
+    :.
+__97v2I1aFV48+9Pp4gcjI9u7ig5CRXPgAimrokiJaB0g
 
 meta::cpp_section('value-space', <<'__VXN1jkOa9voMVMDxjWV3BBEugkXKkypIxjzx3L48eu0');
 - Metaprogramming in Value Space
@@ -1260,7 +1357,7 @@ meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
 __zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc
 
-meta::data('document', <<'__AHVy0FAYfz8UVZgushpXe4nEKQWJkX21RKLuljQTXEc');
+meta::data('document', <<'__cOk7iLdz8exPc6NYX3bIgFzgqOJLec15R8alfNxEQcw');
 = C++ Template Lisp Interpreter
 a Spencer Tipping
 begin
@@ -1268,9 +1365,10 @@ begin
 %section(cpp_section::introduction)
 %section(cpp_section::value-space)
 %section(cpp_section::preprocessor)
+%section(cpp_section::tests)
 %section(cpp_section::beta)
 %section(cpp_section::resources)
-__AHVy0FAYfz8UVZgushpXe4nEKQWJkX21RKLuljQTXEc
+__cOk7iLdz8exPc6NYX3bIgFzgqOJLec15R8alfNxEQcw
 
 meta::data('header', <<'__HlC/zSnFNAXNbuJ/z8ZYgHsD5DWMisPBSt/xyoy+0cw');
 \documentclass{article}
@@ -1319,9 +1417,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__YUsPzoo95mC/WaAd/HLIyPoLNkl6GrIuIjkE6ITWJM4');
-/tmp/interpreter.OpAZ-lVZtrzfbVTt+MwhcVrak47XmEJxFeBCNfWH5kw/document.pdf
-__YUsPzoo95mC/WaAd/HLIyPoLNkl6GrIuIjkE6ITWJM4
+meta::data('pdf-output-file', <<'__hG+nCYog1XrapO3vTgx0TiVGEnH/YD4GFM3uTdpEjb8');
+/tmp/interpreter.GyidWuWAedSxDiCdRxXTDuj6InOnyU5BkEnbpvvhzxo/document.pdf
+__hG+nCYog1XrapO3vTgx0TiVGEnH/YD4GFM3uTdpEjb8
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince

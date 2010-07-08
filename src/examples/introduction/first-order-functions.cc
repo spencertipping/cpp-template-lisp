@@ -8,8 +8,6 @@ template<class t> struct bar {
 };
 
 // Defining a global constant identity_result = bar(also_foo)
-// This is analogous to the code 'let identity_result = bar also_foo'
-// in Haskell.
 typedef bar<also_foo>::type identity_result;
 
 int main () {
