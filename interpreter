@@ -346,54 +346,12 @@ unless ($settings{'name'}) {
 return $line;
 __AON9bxWzZOMpERGSJVrit8dkijYb5Re8IIg2PEC5i1s
 
-meta::cpp_section('beta', <<'__7Rof7HKF7ooSwt3YXGI+e2+pDKtG6JAl33dKd5sjntQ');
+meta::cpp_section('beta', <<'__XoBWQ8N+vb29FEehFz/rRdmXNiF6/8kRcZ70uS4UOw8');
 - $\beta$-Rewrite Representation
+  \label{sec:beta}
   This section outlines the conversion process from a simple $\beta$-rewrite calculus to template metaprogramming constructs. This rewrite system then is combined with an \verb|eval| function
   to form the basis for the metacircular interpreter defined in \Ref{section}{sec:metacircular}.
-
-  - List construct
-    The $\beta$ rewrite system assumes the existence of two data types. One is the {\em term}, which corresponds to a value that might get replaced, and the other is a cons cell of two values.
-    The first step to modeling these things is defining a cons cell, which for this system is Church-encoded:
-
-    :: cpp name=core/cons.hh
-    #ifndef CORE_CONS_HH
-    #define CORE_CONS_HH
-
-    #include "module/begin.hh"
-    def(cons) {
-      when(class h, class t) {
-        local_def(closure) fn(class f, call(f, h, t));
-        ret(closure);
-      };
-    };
-
-    def(head) fn(q(class h, class t), h);
-    def(tail) fn(q(class h, class t), t);
-
-    def(nil) {};
-    #include "module/end.hh"
-
-    #endif
-    :.
-
-    :: cpp name=tests/core/cons.cc
-    #include "core/cons.hh"
-    #include "unit/test.hh"
-    #include "unit/fixtures.hh"
-
-    deftest(cons_instantiation) {
-      let(foo,  call_static(cons, n(5), n(6)));
-      let(five, call_static(foo, head));
-      let(six,  call_static(foo, tail));
-
-      assert_types_equal(five, n(5));
-      assert_types_equal(six,  n(6));
-      assert_types_equal(foo,  call_static(cons, n(5), n(6)));
-    };
-
-    runtest(cons_instantiation);
-    :.
-__7Rof7HKF7ooSwt3YXGI+e2+pDKtG6JAl33dKd5sjntQ
+__XoBWQ8N+vb29FEehFz/rRdmXNiF6/8kRcZ70uS4UOw8
 
 meta::cpp_section('cpp-introduction', <<'__dIO7xsJfuJqvPXdHd7TAMttntR4IjRjbT8tXbJv6WXI');
 - Introduction to C++ Literate Coding
@@ -725,7 +683,98 @@ meta::cpp_section('introduction', <<'__36lFNhCinAJc2hlpemtaX2ZxHW/pZ5qFDb/SlqXBE
       forward-reference semantics.\footnote{Despite this, template expansion is generally lazy in other ways.}
 __36lFNhCinAJc2hlpemtaX2ZxHW/pZ5qFDb/SlqXBEVM
 
-meta::cpp_section('preprocessor', <<'__YGDcFgprFwCUHJEe5TcflxSdsmzU4ryPSEB/zjXrq+E');
+meta::cpp_section('lists', <<'__LfhvwpW0gQEWzwp/Qnhop9qi6JffJEXgVSTCx0qFyzA');
+- List Functions
+  \label{sec:lists}
+  This section implements a Church-encoded linked list that forms the basic data structure for the $\beta$ rewrite process implemented in \Ref{section}{sec:beta}.
+
+  - Cons cells
+    The $\beta$ rewrite system assumes the existence of two data types. One is the {\em term}, which corresponds to a value that might get replaced, and the other is a cons cell of two values.
+    The first step to modeling these things is defining a cons cell, which for this system is Church-encoded:
+
+    :: cpp name=core/cons.hh
+    #ifndef CORE_CONS_HH
+    #define CORE_CONS_HH
+
+    #include "module/begin.hh"
+    def(cons) {
+      when(class h, class t) {
+        local_def(closure) fn(class f, call(f, h, t));
+        ret(closure);
+      };
+
+      def(hd) fn(q(class h, class t), h);
+      def(tl) fn(q(class h, class t), t);
+
+      def(nil) fn(class f, nil);
+    };
+
+    #include "module/end.hh"
+
+    #endif
+    :.
+
+    :: cpp name=tests/core/cons.cc
+    #include "core/cons.hh"
+    #include "unit/test.hh"
+    #include "unit/fixtures.hh"
+
+    deftest(cons_instantiation) {
+      let(foo,  call_static(cons, n(5), n(6)));
+      let(five, call_static(foo, cons::hd));
+      let(six,  call_static(foo, cons::tl));
+
+      assert_types_equal(five, n(5));
+      assert_types_equal(six,  n(6));
+      assert_types_equal(foo,  call_static(cons, n(5), n(6)));
+    };
+
+    runtest(cons_instantiation);
+    :.
+
+    Next to define a variadic list constructor. This uses C++0x variadic templates for specialized expansion. It's sort of possible without variadic templates, though the result is less
+    elegant. Note that because GCC doesn't yet implement variadic template argument unpacking this is not legal. Hopefully they will implement that soon, but until then it's probably going to
+    be longhand \verb|cons| invocation.
+
+  - Identity function
+    This is primarily useful for a fall-through case in a conditional.
+
+    :: cpp name=core/id.hh
+    #ifndef CORE_ID_HH
+    #define CORE_ID_HH
+    #include "module/begin.hh"
+
+    def(id) fn(class x, x);
+
+    #include "module/end.hh"
+    #endif
+    :.
+
+    :: cpp name=tests/core/id.cc
+    #include "core/cons.hh"
+    #include "core/id.hh"
+    #include "unit/test.hh"
+    #include "unit/fixtures.hh"
+
+    deftest(id_invocation) {
+      assert_types_equal(n(5), call_static(id, n(5)));
+      assert_types_equal(cons, call_static(id, cons));
+    };
+    :.
+
+  - {\tt map}, {\tt filter}, and {\tt fold}
+    These can all be implemented in terms of cons-cell juxtaposition, and that's what I'm doing here. (The Church encoding is very convenient for this reason.) Here are the mathematical
+    definitions of these functions:
+
+    \begin{align*}
+      \text{map}~f~xs                          & = xs~\lambda xy . [\text{cons}~(f~x),y] \\
+      \text{filter}~f~xs                       & = xs~\lambda xy . [(\text{cons}~x,y)~(f~x~\text{cons}~\text{tl})] \\
+      \text{fold}~f~(\text{cons}~x,xs)         & = f~x~(\text{fold}~f~xs) \\
+      \text{fold}~f~(\text{cons}~x,\text{nil}) & = x
+    \end{align*}
+__LfhvwpW0gQEWzwp/Qnhop9qi6JffJEXgVSTCx0qFyzA
+
+meta::cpp_section('preprocessor', <<'__ru5k56Qd++9HNT0pf5XPca19NjbfGrBXwtGn3PEdJR8');
 - Preprocessor Definitions
   \label{sec:preprocessor-definitions}
   The goal of this section is to implement a layer of abstraction over the base template constructs. Roughly, the operations are:
@@ -934,9 +983,9 @@ meta::cpp_section('preprocessor', <<'__YGDcFgprFwCUHJEe5TcflxSdsmzU4ryPSEB/zjXrq
     parameters from the return value.
 
     :: cpp name=preprocessor/fn.hh
-    #ifndef LISP_PREPROCESSOR_FN_ENABLED
+    #ifdef LISP_PREPROCESSOR_DEFINE
     #  define LISP_PREPROCESSOR_FN_ENABLED
-    #  define fn(params, return_value) {\
+    #  define fn(params, return_value...) {\
          public: template<params> struct apply { \
            ret(return_value); \
          }; \
@@ -957,6 +1006,24 @@ meta::cpp_section('preprocessor', <<'__YGDcFgprFwCUHJEe5TcflxSdsmzU4ryPSEB/zjXrq
       }
     };
     :.
+
+  - Defining values
+    \label{sec:let-value}
+    You can annotate a type with a value. This is necessary when projecting integer computations into type-space (e.g.~when using \verb|cons::from_bool|, defined in \Ref{section}{sec:cons}).
+    The simplest way to do it is to use \verb|let_value|, defined here:
+
+    :: cpp name=preprocessor/value.hh
+    #ifndef LISP_PREPROCESSOR_DEFINE
+    #  define LISP_PREPROCESSOR_VALUE_ENABLED
+    #  define let_value(name, v...) \
+         private: struct name { enum { value = v }; };
+    #else
+    #  undef  LISP_PREPROCESSOR_VALUE_ENABLED
+    #  undef  let_value
+    #endif
+    :.
+
+    The use case for this macro is covered more extensively in \Ref{section}{sec:conditionals}.
 
   - Preprocessor interface
     \label{sec:preprocessor-interface}
@@ -986,6 +1053,7 @@ meta::cpp_section('preprocessor', <<'__YGDcFgprFwCUHJEe5TcflxSdsmzU4ryPSEB/zjXrq
     #include "preprocessor/ret.hh"
     #include "preprocessor/when.hh"
     #include "preprocessor/fn.hh"
+    #include "preprocessor/value.hh"
     :.
 
   - Core interface
@@ -1006,9 +1074,9 @@ meta::cpp_section('preprocessor', <<'__YGDcFgprFwCUHJEe5TcflxSdsmzU4ryPSEB/zjXrq
     }
     #include "preprocessor/end.hh"
     :.
-__YGDcFgprFwCUHJEe5TcflxSdsmzU4ryPSEB/zjXrq+E
+__ru5k56Qd++9HNT0pf5XPca19NjbfGrBXwtGn3PEdJR8
 
-meta::cpp_section('resources', <<'__1OSnhHIgmujRK2Yo5xQy10wNNh3XGEOAYTmVJVTiCS0');
+meta::cpp_section('resources', <<'__R3XqPVqyqNwGYVZ3Gi1Xz1iPah4pK7hBXLmQSLejTfA');
 - Resources
   \label{sec:resources}
   This section contains extra files that are helpful for running the examples. Note that this library requires your version of \verb|gcc| to support a fairly recent C++0x draft, as specified
@@ -1046,7 +1114,7 @@ meta::cpp_section('resources', <<'__1OSnhHIgmujRK2Yo5xQy10wNNh3XGEOAYTmVJVTiCS0'
     \verb|src/tests|.
 
     :: resource name=tests/makefile
-    UNIT        = core/cons
+    UNIT        = core/cons core/id
     INTEGRATION =
 
     BASE_DIR    = ../
@@ -1062,7 +1130,7 @@ meta::cpp_section('resources', <<'__1OSnhHIgmujRK2Yo5xQy10wNNh3XGEOAYTmVJVTiCS0'
     %: %.cc
     	$(CC) $(CC_OPTS) $< -o $@ || true
     :.
-__1OSnhHIgmujRK2Yo5xQy10wNNh3XGEOAYTmVJVTiCS0
+__R3XqPVqyqNwGYVZ3Gi1Xz1iPah4pK7hBXLmQSLejTfA
 
 meta::cpp_section('tests', <<'__snHTu+mlsP5gHXKfQ7SbtkqghsJufEbbZds7Utnbp4k');
 - Unit and Integration Tests
@@ -1447,7 +1515,7 @@ meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
 __zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc
 
-meta::data('document', <<'__cOk7iLdz8exPc6NYX3bIgFzgqOJLec15R8alfNxEQcw');
+meta::data('document', <<'__3cqz1oFwvm/WXQReCrfKtN+NIwqcNz7rC3AGa+NxR4o');
 = C++ Template Lisp Interpreter
 a Spencer Tipping
 begin
@@ -1455,10 +1523,11 @@ begin
 %section(cpp_section::introduction)
 %section(cpp_section::value-space)
 %section(cpp_section::preprocessor)
-%section(cpp_section::tests)
+%section(cpp_section::lists)
 %section(cpp_section::beta)
+%section(cpp_section::tests)
 %section(cpp_section::resources)
-__cOk7iLdz8exPc6NYX3bIgFzgqOJLec15R8alfNxEQcw
+__3cqz1oFwvm/WXQReCrfKtN+NIwqcNz7rC3AGa+NxR4o
 
 meta::data('header', <<'__HlC/zSnFNAXNbuJ/z8ZYgHsD5DWMisPBSt/xyoy+0cw');
 \documentclass{article}
@@ -1507,9 +1576,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__bVVbBQSknT1qBFtC2Cpru7Yh53xmGOTnCDHw0UEAaKQ');
-/tmp/interpreter.vtj+xs033czFXQGgG3mBHEm4Nzc6DCNkCYH2XyBeY1I/document.pdf
-__bVVbBQSknT1qBFtC2Cpru7Yh53xmGOTnCDHw0UEAaKQ
+meta::data('pdf-output-file', <<'__1sMn39loDfnIr2L33QlDifp/rI5EPNsk09o5u6GioBM');
+/tmp/interpreter.-hPe2yfNoOtYrpciNBiQ9dENE6UM8uWGE-m6w43tIU8/document.pdf
+__1sMn39loDfnIr2L33QlDifp/rI5EPNsk09o5u6GioBM
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince

@@ -7,12 +7,13 @@ def(cons) {
     local_def(closure) fn(class f, call(f, h, t));
     ret(closure);
   };
+
+  def(hd) fn(q(class h, class t), h);
+  def(tl) fn(q(class h, class t), t);
+
+  def(nil) fn(class f, nil);
 };
 
-def(head) fn(q(class h, class t), h);
-def(tail) fn(q(class h, class t), t);
-
-def(nil) {};
 #include "module/end.hh"
 
 #endif

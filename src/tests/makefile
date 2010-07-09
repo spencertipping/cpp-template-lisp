@@ -1,4 +1,4 @@
-UNIT        = core/cons
+UNIT        = core/cons core/id
 INTEGRATION =
 
 BASE_DIR    = ../

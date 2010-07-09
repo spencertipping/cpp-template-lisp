@@ -5,3 +5,4 @@
 #include "preprocessor/ret.hh"
 #include "preprocessor/when.hh"
 #include "preprocessor/fn.hh"
+#include "preprocessor/value.hh"
